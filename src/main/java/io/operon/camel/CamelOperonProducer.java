@@ -17,6 +17,8 @@
 package io.operon.camel;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -38,13 +40,21 @@ import io.operon.runner.node.type.OperonValue;
 import io.operon.runner.util.JsonUtil;
 import io.operon.runner.compiler.CompilerFlags;
 
+import io.operon.camel.OperonProcessor;
+import io.operon.camel.util.QueryLoadUtil;
+
+import com.google.gson.Gson;
+
 public class CamelOperonProducer extends DefaultProducer {
     private static final Logger LOG = LoggerFactory.getLogger(CamelOperonProducer.class);
+    
+    private final String HEADER_OPERON_MODULES = "operonModules";
     private CamelOperonEndpoint endpoint;
     private String queryFile = null;
     private String query = null;
     private OperonConfigs configs = null;
     private boolean debug = false;
+    private OperonProcessor processor;
 
     public CamelOperonProducer(CamelOperonEndpoint endpoint) throws IOException, URISyntaxException {
         super(endpoint);
@@ -52,29 +62,15 @@ public class CamelOperonProducer extends DefaultProducer {
         this.configs = new OperonConfigs();
         this.queryFile = endpoint.getQueryFile();
         this.debug = endpoint.isDebug();
+        processor = new OperonProcessor();
+        processor.setDebug(this.debug);
         
         if (this.queryFile != null) {
             if (debug) {
                 LOG.info("queryFile=" + this.queryFile);
             }
             
-            Path path = null;
-            
-            if (queryFile.startsWith("file://")) {
-                path = Paths.get(queryFile.substring(7, queryFile.length()));
-            }
-            
-            else {
-                URL qfUrl = ObjectHelper.loadResourceAsURL(queryFile);
-                if (qfUrl == null) {
-                    LOG.info("Could not load resource from classpath: " + queryFile);
-                    throw new IOException("Could not load resource from classpath: " + queryFile);
-                }
-                URI qfUri = qfUrl.toURI();
-                path = Paths.get(qfUri);
-            }
-            
-            this.query = new String(Files.readAllBytes(path));
+            this.query = QueryLoadUtil.loadQueryFile(this.queryFile);
         }
         
         configs.setOutputResult(endpoint.isOutputResult());
@@ -88,41 +84,23 @@ public class CamelOperonProducer extends DefaultProducer {
     }
 
     public void process(Exchange exchange) throws Exception {
-        Map<String, Object> headers = exchange.getIn().getHeaders();
-        String initialValueJson = (String) headers.get("initialValue");
-        OperonValue initialValue = null;
+        String inputMimeType = null;
+        String outputMimeType = null;
+        processor.setOperonScript(this.query);
         
-        if (initialValueJson != null) {
-            if (endpoint.isIndexRoot()) {
-                CompilerFlags[] flags = {CompilerFlags.INDEX_ROOT};
-                initialValue = JsonUtil.operonValueFromString(initialValueJson, flags);
+        String modulePathsStr = exchange.getIn().getHeader(HEADER_OPERON_MODULES, String.class);
+        if (modulePathsStr != null) {
+            List<String> modulePaths = new ArrayList<String>();
+            String [] paths = modulePathsStr.split(",");
+            for (int i = 0; i < paths.length; i ++) {
+                String p = paths[i].trim();
+                modulePaths.add(p);
             }
-            else {
-                initialValue = JsonUtil.operonValueFromString(initialValueJson);
-            }
+            processor.setModulePaths(modulePaths);
+            processor.init();
         }
         
-        else {
-            
-        }
-        
-        if (this.query == null) {
-            this.query = exchange.getIn().getBody(String.class);
-        }
-        
-        OperonValue resultValue = null;
-        
-        if (initialValue == null) {
-            resultValue = OperonRunner.doQuery(query, configs);
-        }
-        else {
-            resultValue = OperonRunner.doQueryWithInitialValue(query, initialValue, configs);
-        }
-        
-        String result = resultValue.toString();
-        if (configs.getPrettyPrint()) {
-            result = OperonContext.serializeStringAsPrettyJson(result);
-        }
+        Object result = processor.processMapping(exchange, inputMimeType, outputMimeType);
         exchange.getIn().setBody(result);
     }
 

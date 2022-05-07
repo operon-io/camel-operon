@@ -1,0 +1,24 @@
+{
+  "language": {
+    "kind": "language",
+    "name": "operon",
+    "modelName": "operon",
+    "title": "Operon",
+    "description": "To use Operon scripts in Camel expressions or predicates.",
+    "deprecated": false,
+    "deprecationNote": "language,operon",
+    "firstVersion": "3.3.0",
+    "label": "language,operon",
+    "javaType": "io.operon.camel.language.CamelOperonLanguage",
+    "modelJavaType": "io.operon.camel.language.OperonExpression",
+    "groupId": "io.operon",
+    "artifactId": "camel-operon",
+    "version": "1.0.4-SNAPSHOT"
+  },
+  "properties": {
+    "expression": { "kind": "value", "displayName": "Expression", "required": true, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "The expression value in your chosen language syntax" },
+    "id": { "kind": "attribute", "displayName": "Id", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the id of this node" },
+    "inputMimeType": { "kind": "attribute", "displayName": "inputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the input mime type of the expression" },
+    "outputMimeType": { "kind": "attribute", "displayName": "outputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the output mime type of the expression" }
+  }
+}
