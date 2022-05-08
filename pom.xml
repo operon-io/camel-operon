@@ -6,7 +6,7 @@
   <groupId>io.operon</groupId>
   <artifactId>camel-operon</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.4.1-RELEASE</version>
+  <version>0.9.4.2-RELEASE</version>
 
   <name>Camel Operon Component</name>
   <url>https://operon.io</url>

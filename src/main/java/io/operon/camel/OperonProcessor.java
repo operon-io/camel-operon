@@ -38,30 +38,19 @@ import java.util.List;
 import java.util.Map;
 
 import io.operon.camel.util.QueryLoadUtil;
+import io.operon.camel.model.CamelOperonHeaders;
+import io.operon.camel.model.CamelOperonMimeTypes;
 import io.operon.camel.model.exception.UnsupportedMimeTypeException;
 
 import com.google.gson.Gson;
 
 public class OperonProcessor implements Processor {
-
-    private final String HEADER_OUTPUT_MIME_TYPE = "outputMimeType";
-    private final String HEADER_INPUT_MIME_TYPE = "inputMimeType";
-    private final String HEADER_CONTENT_TYPE = "content_type";
-    private final String HEADER_LANGUAGE_SCRIPT = "operonScript";
-    private final String HEADER_LANGUAGE_SCRIPT_PATH = "operonScriptPath";
-    private final String HEADER_INITIAL_VALUE = "initialValue";
-    private final String HEADER_OPERON_VALUE_BINDINGS = "operonValueBindings";
     
-	private final String MIME_APPLICATION_JSON = "application/json";
-	private final String MIME_APPLICATION_JAVA = "application/java";
-	private final String MIME_APPLICATION_OCTET_STREAM = "application/octet-stream";
-	private final String UNKNOWN_MIME_TYPE = "UNKNOWN_MIME_TYPE";
-
     private List<String> modulePaths;
 	
     private Map<String, String> namedImports = new HashMap<>();
     private List<String> supportedMimeTypes = new ArrayList<>(
-    	Arrays.asList(MIME_APPLICATION_JSON, MIME_APPLICATION_JAVA, MIME_APPLICATION_OCTET_STREAM));
+    	Arrays.asList(CamelOperonMimeTypes.MIME_APPLICATION_JSON, CamelOperonMimeTypes.MIME_APPLICATION_JAVA, CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM));
 
      // no logger 
 
@@ -149,14 +138,14 @@ public class OperonProcessor implements Processor {
 
     public Object processMapping(Exchange exchange, String _inputMimeType, String _outputMimeType) throws Exception {
         if (_inputMimeType == null || "".equalsIgnoreCase(_inputMimeType.trim())) {
-			String overriddenInputMimeType = (String) exchange.getIn().getHeader(HEADER_INPUT_MIME_TYPE);
+			String overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE);
 			
 			if (overriddenInputMimeType == null) {
-				overriddenInputMimeType = (String) exchange.getIn().getHeader(HEADER_CONTENT_TYPE);
+				overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE);
 			}
 			
 			if (overriddenInputMimeType == null) {
-				overriddenInputMimeType = UNKNOWN_MIME_TYPE;
+				overriddenInputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
 			}
 			
             _inputMimeType = overriddenInputMimeType;
@@ -167,18 +156,18 @@ public class OperonProcessor implements Processor {
             if (isDebug()) {
             	System.out.println("inputMimeType :: not found :: set application/json");
             }
-            _inputMimeType = MIME_APPLICATION_JSON;
+            _inputMimeType = CamelOperonMimeTypes.MIME_APPLICATION_JSON;
         }
 
         if (_outputMimeType == null || "".equalsIgnoreCase(_outputMimeType.trim())) {
-			String overriddenOutputMimeType = (String) exchange.getIn().getHeader(HEADER_OUTPUT_MIME_TYPE);
+			String overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE);
 			
 			if (overriddenOutputMimeType == null) {
-				overriddenOutputMimeType = (String) exchange.getIn().getHeader(HEADER_CONTENT_TYPE);
+				overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE);
 			}
 			
 			if (overriddenOutputMimeType == null) {
-				overriddenOutputMimeType = UNKNOWN_MIME_TYPE;
+				overriddenOutputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
 			}
 			
             _outputMimeType = overriddenOutputMimeType;
@@ -189,7 +178,7 @@ public class OperonProcessor implements Processor {
             if (isDebug()) {
             	System.out.println("outputMimeType :: not found :: set application/json");
             }
-            _outputMimeType = MIME_APPLICATION_JSON;
+            _outputMimeType = CamelOperonMimeTypes.MIME_APPLICATION_JSON;
         }
 
 		//
@@ -198,11 +187,11 @@ public class OperonProcessor implements Processor {
 		String query = this.getOperonScript();
 		
 		if (query == null) {
-			query = (String) exchange.getIn().getHeader(HEADER_LANGUAGE_SCRIPT);
+			query = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT);
 		}
 		
 		if (query == null) {
-		    String queryFile = (String) exchange.getIn().getHeader(HEADER_LANGUAGE_SCRIPT_PATH);
+		    String queryFile = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT_PATH);
 		    if (queryFile != null && queryFile.length() > 0) {
 		        query = QueryLoadUtil.loadQueryFile(queryFile);
 		    }
@@ -218,7 +207,7 @@ public class OperonProcessor implements Processor {
 		//
 		// Resolve initial value
 		//
-		Object initialValueData = exchange.getIn().getHeader(HEADER_INITIAL_VALUE);
+		Object initialValueData = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE);
 		
 		if (initialValueData == null && queryInBody == false) {
 			//logger.info("Resolve initial value from body");
@@ -234,7 +223,7 @@ public class OperonProcessor implements Processor {
 		// Check headers for value-bindings
 		// E.g. OPERON_VALUE_BINDINGS Map<String, String> {$a: {foo: 111} }
 		//
-		Map valueBindings = exchange.getIn().getHeader(HEADER_OPERON_VALUE_BINDINGS, Map.class);
+		Map valueBindings = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS, Map.class);
 		if (valueBindings != null) {
 		    HashMap<String, String> valueBindingsHM = (HashMap<String, String>) valueBindings;
 		    // loop over, and set into configs.
@@ -245,7 +234,7 @@ public class OperonProcessor implements Processor {
 		}
 		
 		if (initialValueData != null) {
-			if (_inputMimeType.equalsIgnoreCase(MIME_APPLICATION_JSON)) {
+			if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
 				String initialValueStr = (String) initialValueData;
 				if (initialValueStr.isEmpty()) {
 					initialValueStr = "empty";
@@ -253,7 +242,7 @@ public class OperonProcessor implements Processor {
 				initialValue = JsonUtil.operonValueFromString(initialValueStr);
 			}
 			
-			else if (_inputMimeType.equalsIgnoreCase(MIME_APPLICATION_JAVA)) {
+			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
 				// map from pojo
 				Gson gson = new Gson();
 				String jsonString = gson.toJson(initialValueData);
@@ -263,7 +252,7 @@ public class OperonProcessor implements Processor {
 				initialValue = JsonUtil.operonValueFromString(jsonString);
 			}
 			
-			else if (_inputMimeType.equalsIgnoreCase(MIME_APPLICATION_OCTET_STREAM)) {
+			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {
 				byte[] initialValueBytes = (byte[]) initialValueData;
 				if (initialValueBytes.length == 0) {
 					initialValue = JsonUtil.operonValueFromString("empty");
@@ -294,13 +283,13 @@ public class OperonProcessor implements Processor {
 	        System.out.println("outputMimeType :: " + _outputMimeType);
         }
         
-        if (_outputMimeType.equalsIgnoreCase(MIME_APPLICATION_JSON)) {
+        if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
         	return resultValue.toString();
         }
-        else if (_outputMimeType.equalsIgnoreCase(MIME_APPLICATION_JAVA)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
         	return resultValue;
         }
-        else if (_outputMimeType.equalsIgnoreCase(MIME_APPLICATION_OCTET_STREAM)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {
         	// Cast to raw type:
         	RawValue raw = (RawValue) resultValue;
         	return raw.getBytes();
