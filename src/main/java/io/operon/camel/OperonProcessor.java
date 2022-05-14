@@ -60,7 +60,7 @@ public class OperonProcessor implements Processor {
     private String operonFile;
     private String operonScript;
     private List<ModuleDefinition> modules;
-    private boolean debug = true;
+    private boolean debug = false;
 
     public void process(Exchange exchange) throws Exception {
         Object mappedBody = processMapping(exchange);
