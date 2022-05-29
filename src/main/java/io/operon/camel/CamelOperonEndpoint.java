@@ -60,6 +60,9 @@ public class CamelOperonEndpoint extends DefaultEndpoint {
     @UriParam(description = "Set to index the root-object")
     private boolean indexRoot = false;
 
+    @UriParam(description = "Throws Java-exception when Operon Error-value was returned")
+    private boolean throwOnError = false;
+
     public CamelOperonEndpoint() {}
 
     public CamelOperonEndpoint(String uri, CamelOperonComponent component) {
@@ -128,6 +131,14 @@ public class CamelOperonEndpoint extends DefaultEndpoint {
 
     public boolean isIndexRoot() {
         return this.indexRoot;
+    }
+
+    public void setThrowOnError(boolean t) {
+        this.throwOnError = t;
+    }
+
+    public boolean isThrowOnError() {
+        return this.throwOnError;
     }
 
     public void setDebug(boolean debug) {

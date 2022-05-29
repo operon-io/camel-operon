@@ -4,15 +4,18 @@ import java.util.List;
 import java.util.ArrayList;
 
 import io.operon.camel.OperonProcessor;
+import io.operon.camel.model.CamelOperonHeaders;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Expression;
 import org.apache.camel.RuntimeExpressionException;
 import org.apache.camel.support.ExpressionAdapter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.operon.camel.model.CamelOperonHeaders;
+import io.operon.runner.model.OperonConfigs;
+
 
 public class OperonExpression extends ExpressionAdapter { //implements GeneratedPropertyConfigurer {
     private String expression;
@@ -22,13 +25,16 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
 
     private OperonProcessor processor;
     private Expression innerExpression;
+    private OperonConfigs configs;
 
     // no logger
 
     public OperonExpression(String expression) {
         this.expression = expression;
-        processor = new OperonProcessor();
-        processor.setOperonScript(expression);
+        this.processor = new OperonProcessor();
+        this.processor.setOperonScript(expression);
+        this.configs = new OperonConfigs();
+        
         try {
             processor.init();
         } catch (Exception e) {
@@ -53,6 +59,11 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
 
     @Override
     public <T> T evaluate(Exchange exchange, Class<T> type) {
+        OperonConfigs overrideConfigs = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_CONFIGS, OperonConfigs.class);
+        
+        if (overrideConfigs != null) {
+            this.configs = overrideConfigs;
+        }
 
         if (inputMimeType != null) {
             exchange.setProperty("inputMimeType", inputMimeType);
@@ -89,7 +100,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
                 }
                 processor.setModulePaths(modulePaths);
             }
-            Object value = processor.processMapping(exchange, inputMimeType, outputMimeType);
+            Object value = processor.processMapping(exchange, this.configs, inputMimeType, outputMimeType);
             return exchange.getContext().getTypeConverter().convertTo(type, value);
         } catch (Exception e) {
             throw new RuntimeExpressionException("Unable to evaluate Operon expression : " + expression, e);

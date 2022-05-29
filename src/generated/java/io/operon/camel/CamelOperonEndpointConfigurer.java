@@ -34,6 +34,8 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "printDuration": target.setPrintDuration(property(camelContext, boolean.class, value)); return true;
         case "queryfile":
         case "queryFile": target.setQueryFile(property(camelContext, java.lang.String.class, value)); return true;
+        case "throwonerror":
+        case "throwOnError": target.setThrowOnError(property(camelContext, boolean.class, value)); return true;
         case "timezone": target.setTimezone(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
@@ -55,6 +57,8 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "printDuration": return boolean.class;
         case "queryfile":
         case "queryFile": return java.lang.String.class;
+        case "throwonerror":
+        case "throwOnError": return boolean.class;
         case "timezone": return java.lang.String.class;
         default: return null;
         }
@@ -77,6 +81,8 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "printDuration": return target.isPrintDuration();
         case "queryfile":
         case "queryFile": return target.getQueryFile();
+        case "throwonerror":
+        case "throwOnError": return target.isThrowOnError();
         case "timezone": return target.getTimezone();
         default: return null;
         }

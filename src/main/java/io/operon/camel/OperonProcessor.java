@@ -133,10 +133,18 @@ public class OperonProcessor implements Processor {
     }
 
     public Object processMapping(Exchange exchange) throws Exception {
-        return processMapping(exchange, null, null);
+        return processMapping(exchange, null, null, null);
     }
 
-    public Object processMapping(Exchange exchange, String _inputMimeType, String _outputMimeType) throws Exception {
+    public Object processMapping(Exchange exchange, OperonConfigs operonConfigs, String _inputMimeType, String _outputMimeType) throws Exception {
+        OperonConfigs configs = null;
+        if (operonConfigs == null) {
+            configs = new OperonConfigs();
+        }
+        else {
+            configs = operonConfigs;
+        }
+        
         if (_inputMimeType == null || "".equalsIgnoreCase(_inputMimeType.trim())) {
 			String overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE);
 			
@@ -217,7 +225,6 @@ public class OperonProcessor implements Processor {
 		
 		OperonValue initialValue = null;
 		OperonValue resultValue = null;
-		OperonConfigs configs = new OperonConfigs();
 		
 		//
 		// Check headers for value-bindings

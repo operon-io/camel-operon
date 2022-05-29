@@ -100,7 +100,7 @@ public class CamelOperonProducer extends DefaultProducer {
             processor.init();
         }
         
-        Object result = processor.processMapping(exchange, inputMimeType, outputMimeType);
+        Object result = processor.processMapping(exchange, configs, inputMimeType, outputMimeType);
         exchange.getIn().setBody(result);
     }
 

@@ -11,7 +11,7 @@
     "supportLevel": "Preview",
     "groupId": "io.operon",
     "artifactId": "camel-operon",
-    "version": "0.9.5-RELEASE",
+    "version": "0.9.5.1-RELEASE",
     "scheme": "operon",
     "extendsScheme": "",
     "syntax": "operon:name",
@@ -34,6 +34,7 @@
     "prettyPrint": { "kind": "parameter", "displayName": "Pretty Print", "group": "producer", "label": "", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Formats the result" },
     "printDuration": { "kind": "parameter", "displayName": "Print Duration", "group": "producer", "label": "", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Prints how long the query took to execute" },
     "queryFile": { "kind": "parameter", "displayName": "Query File", "group": "producer", "label": "", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "autowired": false, "secret": false, "description": "file:\/\/path\/to\/queryfile.op or classpath:\/\/classpath\/to\/queryFile.op. Omitting file:\/\/ or classpath:\/\/ assumes that queryFile is in the classpath." },
+    "throwOnError": { "kind": "parameter", "displayName": "Throw On Error", "group": "producer", "label": "", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Throws Java-exception when Operon Error-value was returned" },
     "timezone": { "kind": "parameter", "displayName": "Timezone", "group": "producer", "label": "", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "autowired": false, "secret": false, "description": "Timezone for date-functions" }
   }
 }

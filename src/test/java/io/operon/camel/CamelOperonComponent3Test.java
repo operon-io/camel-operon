@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.operon.camel.model.CamelOperonHeaders;
+
 public class CamelOperonComponent3Test extends CamelTestSupport {
 
     @Test
@@ -48,9 +50,9 @@ public class CamelOperonComponent3Test extends CamelTestSupport {
             public void configure() {
                 from("timer://foo?period=10000")
                   .setBody(constant("Select: -> http:{\"url\": \"https://api.chucknorris.io/jokes/random\"}"))
-                  .to("operon://quotes1")
-                  .log("Setting initial value :: " + simple("${body}"))
-                  .setHeader("initialValue", simple("${body}"))
+                  .to("operon://quotes1?outputResult=true&prettyPrint=true")
+                  //.log("Setting initial value :: " + body())
+                  .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE, body())
                   .setBody(constant("Select: $.body.value"))
                   .to("operon://quotes2")
                   .to("mock:result");

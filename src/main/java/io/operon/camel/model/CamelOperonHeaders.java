@@ -11,4 +11,5 @@ public class CamelOperonHeaders {
     public static final String HEADER_OPERON_VALUE_BINDINGS = "operonValueBindings";
     public static final String HEADER_OPERON_MODULES = "operonModules";
 
+    public static final String HEADER_OPERON_CONFIGS = "operonConfigs";
 }
