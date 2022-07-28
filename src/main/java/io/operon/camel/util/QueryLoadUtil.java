@@ -38,7 +38,11 @@ public class QueryLoadUtil {
                 throw new IOException("Could not load resource from classpath: " + queryFile);
             }
             URI qfUri = qfUrl.toURI();
-            path = Paths.get(qfUri);
+            try {
+                path = Paths.get(qfUri);
+            } catch (java.nio.file.FileSystemNotFoundException fsnfe) {
+                LOG.error("File-system not found. Path was: " + qfUri);
+            }
         }
         
         String result = new String(Files.readAllBytes(path));

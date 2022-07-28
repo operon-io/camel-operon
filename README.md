@@ -11,6 +11,16 @@ handling JSON-data."
 
 https://operon.io/components/running-operon-from-apache-camel
 
+### Usage with Maven
+
+```
+  <dependency>
+    <groupId>io.operon</groupId>
+    <artifactId>camel-operon</artifactId>
+    <version>0.9.5-RELEASE</version>
+  </dependency>
+```
+
 ### Options
 
 * queryFile : java.lang.String. When starts with "file://" then tries to load the query from the file-system, otherwise from the classpath.
@@ -23,28 +33,42 @@ https://operon.io/components/running-operon-from-apache-camel
 ### Headers
 
 Please note that the headers are case-insensitive, so it does not matter whether we type INITIALVALUE or initialValue.
+The headers are listed in the class CamelOperonHeaders and it is encouraged to use these instead of hard-coding the values.
 
 * initialValue: allows to set the root-value ($) for the query.
+	- CamelOperonHeaders.HEADER_INITIAL_VALUE
 
 * operonModules: loads any external Operon-scripts as libraries before executing the script.
+	- CamelOperonHeaders.HEADER_OPERON_MODULES
 
 * operonValueBindings: allows to bind values to the query.
+	- CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS
 
 * operonScript: the operon-script can be set into this header
+	- CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT
+
+* operonScriptPath: the path from where the script is found
+    - CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT_PATH
 
 * inputMimeType: decides how to interpret the input. Allowed values: application/json (default), application/java.
-- When "application/json", then parses the input as Operon-value.
-- When "application/java", then parses the input as Operon-value from Java-object.
-- When "application/octet-stream", then expects the input to be byte[], and parses the input as Operon-value: RawValue.
+	- CamelOperonHeaders.HEADER_INPUT_MIME_TYPE
+	- When "application/json", then parses the input as Operon-value.
+	- When "application/java", then parses the input as Operon-value from Java-object.
+	- When "application/octet-stream", then expects the input to be byte[], and parses the input as Operon-value: RawValue.
 
 * outputMimeType: decides how to interpret the output. Allowed values: application/json (default), application/java, application/octet-stream
-- When "application/json", then serializes the result as Java String, representing the JSON.
-- When "application/java", then keeps the result as Operon typed value, e.g. NumberType.
-- When "application/octet-stream", then expected result is RawValue, from which the byte-array is taken.
+	- CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE
+	- When "application/json", then serializes the result as Java String, representing the JSON.
+	- When "application/java", then keeps the result as Operon typed value, e.g. NumberType.
+	- When "application/octet-stream", then expected result is RawValue, from which the byte-array is taken.
 
 * content_type: sets both the input and output mime-type, if they are not set. Allowed values: application/json, application/java, application/octet-stream.
+	- CamelOperonHeaders.HEADER_CONTENT_TYPE
 
 ### Component-examples
+
+```
+import io.operon.camel.model.CamelOperonHeaders;
 
 @Override
 protected RouteBuilder createRouteBuilder() throws Exception {
@@ -63,6 +87,9 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 		// Query with initial-value
 		//
 	    from("timer://t1?repeatCount=1")
+	      //
+	      // Another way to set the header is: .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE, constant("{\"foo\": \"bar\"}"))
+	      //
 	      .setHeader("initialValue", constant("{\"foo\": \"bar\"}"))
 	      .setBody(constant("Select: $.foo"))
 	      .to("operon://bar")
@@ -119,9 +146,11 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 	}
   }
 }
+```
 
 ### Language-examples
 
+```
 public class Foo {
     private String name = "Bar";
     private Map<String, String> bins;
@@ -152,7 +181,7 @@ protected RouteBuilder createRouteBuilder() throws Exception {
             //
             from("direct://start2")
               .doTry()
-                .setHeader("LANGUAGE_SCRIPT", constant("Select: 123"));
+                .setHeader("operonScript", constant("Select: 123"));
                 .setBody().language("operon", null)
               .doCatch(Exception.class)
                 .log("ERROR OCCURED :: ${exception}")
@@ -168,8 +197,8 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 	        
             from("direct://start3")
               .doTry()
-                .setHeader("LANGUAGE_SCRIPT", constant("Select: $"))
-                .setHeader("CONTENT_TYPE", constant("application/java"))
+                .setHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT, constant("Select: $"))
+                .setHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE, constant("application/java"))
                 .setBody(constant(foo))
                 .setBody().language("operon", null)
               .doCatch(Exception.class)
@@ -193,3 +222,4 @@ protected RouteBuilder createRouteBuilder() throws Exception {
         }
     };
 }
+```
