@@ -11,7 +11,7 @@
     "supportLevel": "Preview",
     "groupId": "io.operon",
     "artifactId": "camel-operon",
-    "version": "0.9.6-SNAPSHOT",
+    "version": "0.9.6-RELEASE",
     "scheme": "operon",
     "extendsScheme": "",
     "syntax": "operon:name",
