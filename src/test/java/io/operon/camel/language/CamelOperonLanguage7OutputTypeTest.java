@@ -1,46 +1,27 @@
 package io.operon.camel.language;
 
-import java.util.Map;
-import java.util.HashMap;
-
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import static org.junit.Assert.*;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Produce;
 
-/**
- * Tests for running Operon
- * 
- */
-public class CamelOperonLanguage3Test extends CamelTestSupport {
-
-    public class Foo {
-        private String name = "Bar";
-        private Map<String, String> bins;
-        public Foo() {
-            this.bins = new HashMap<String, String>();
-            this.bins.put("bin", "bai");
-            this.bins.put("baa", "baba");
-            
-        }
-    }
+public class CamelOperonLanguage7OutputTypeTest extends CamelTestSupport {
 
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
 
+    // The output is set as application/octet-stream, which should keep the result
+    // as an byte-array.
     @Test
     public void testOperonExpr() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
-        mock.expectedBodiesReceived("{\"name\": \"Bar\", \"bins\": {\"baa\": \"baba\", \"bin\": \"bai\"}}");
+        mock.expectedBodiesReceived("RAW VALUE");
         
-        Map<String, Object> headers = new HashMap<String, Object>();
-        headers.put("operonScript", "Select: $");
-        headers.put("content_type", "application/java");
-        Foo foo = new Foo();
-        pt.sendBodyAndHeaders(foo, headers);
+        pt.sendBody("");
         assertMockEndpointsSatisfied();
     }
 
@@ -50,10 +31,12 @@ public class CamelOperonLanguage3Test extends CamelTestSupport {
             public void configure() {
                 from("direct://start")
                   .doTry()
-                    .setBody().language("operon", null)
+                    .setHeader("INPUTMIMETYPE", constant("application/octet-stream"))
+                    .setHeader("OUTPUTMIMETYPE", constant("application/octet-stream"))
+                    .setHeader("INITIALVALUE", constant("RAW VALUE".getBytes()))
+                    .setBody().language("operon", "Select: $")
                     .to("mock:result")
                   .doCatch(Exception.class)
-                    .log("ERROR OCCURED :: ${exception}")
                     .setBody().constant("Error occured.")
                     .to("mock:error")
                   .end();

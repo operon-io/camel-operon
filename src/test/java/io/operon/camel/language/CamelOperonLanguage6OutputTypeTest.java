@@ -7,28 +7,22 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Produce;
-import org.apache.camel.Predicate;
 
-import io.operon.runner.node.type.NumberType;
-
-public class CamelOperonLanguage5Test extends CamelTestSupport {
+public class CamelOperonLanguage6OutputTypeTest extends CamelTestSupport {
 
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
 
-    // The output is set as application/java, which should keep the result
-    // as Operon typed value.
+    // The output is set as application/octet-stream, which should keep the result
+    // as an byte-array.
     @Test
     public void testOperonExpr() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
-        mock.expectedBodiesReceived("123");
+        mock.expectedBodiesReceived("RAW VALUE");
         
         pt.sendBody("");
         assertMockEndpointsSatisfied();
-        
-        assertEquals("io.operon.runner.node.type.NumberType", mock.getReceivedExchanges().get(0).
-            getIn().getBody().getClass().getName());
     }
 
     @Override
@@ -37,9 +31,9 @@ public class CamelOperonLanguage5Test extends CamelTestSupport {
             public void configure() {
                 from("direct://start")
                   .doTry()
-                    .setHeader("inputMimeType", constant("application/json"))
-                    .setHeader("outputMimeType", constant("application/java"))
-                    .setBody().language("operon", "Select: 123")
+                    .setHeader("INPUTMIMETYPE", constant("application/json"))
+                    .setHeader("OUTPUTMIMETYPE", constant("application/octet-stream"))
+                    .setBody().language("operon", "Select: \"RAW VALUE\" => raw()")
                     .to("mock:result")
                   .doCatch(Exception.class)
                     .setBody().constant("Error occured.")

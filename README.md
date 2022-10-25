@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.7-RELEASE</version>
+    <version>0.9.7.1-RELEASE</version>
   </dependency>
 ```
 
@@ -41,6 +41,9 @@ The headers are listed in the class CamelOperonHeaders and it is encouraged to u
 * operonModules: loads any external Operon-scripts as libraries before executing the script.
 	- CamelOperonHeaders.HEADER_OPERON_MODULES
 
+* operonConfigs: the `io.operon.runner.model.OperonConfigs` -instance to manually conrol e.g. "outputResult" when using Camel's language-expression (which is there by default set to false).
+    - CamelOperonHeaders.HEADER_OPERON_CONFIGS
+
 * operonValueBindings: allows to bind values to the query.
 	- CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS
 
@@ -56,13 +59,14 @@ The headers are listed in the class CamelOperonHeaders and it is encouraged to u
 	- When "application/java", then parses the input as Operon-value from Java-object.
 	- When "application/octet-stream", then expects the input to be byte[], and parses the input as Operon-value: RawValue.
 
-* outputMimeType: decides how to interpret the output. Allowed values: application/json (default), application/java, application/octet-stream
+* outputMimeType: decides how to interpret the output. Allowed values: application/json (default), application/java, application/java-list, application/octet-stream
 	- CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE
 	- When "application/json", then serializes the result as Java String, representing the JSON.
 	- When "application/java", then keeps the result as Operon typed value, e.g. NumberType.
+	- When "application/java-list", then pulls out the Java Lists from the Operon typed values. This allows using the Camel's Split-EIP with Operon-expression. ArrayType gives List<Node>, ObjectType gives List<ObjectType>, and other types are plainly put into a List<OperonValue>.
 	- When "application/octet-stream", then expected result is RawValue, from which the byte-array is taken.
 
-* content_type: sets both the input and output mime-type, if they are not set. Allowed values: application/json, application/java, application/octet-stream.
+* content_type: sets both the input and output mime-type, if they are not set. Allowed values: application/json, application/java, application/java-list (inputMimeType will be set as application/java), application/octet-stream.
 	- CamelOperonHeaders.HEADER_CONTENT_TYPE
 
 ### Component-examples
@@ -82,6 +86,14 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 	      .setBody(constant("Select: 123"))
 	      .to("operon://bar")
 	      ;
+	      
+    	//
+    	// Output-result to console and pretty-print it:
+    	//
+	    from("timer://t1?repeatCount=1")
+	      .setBody(constant("Select {outputResult, prettyPrint}: 123"))
+	      .to("operon://bar")
+	      ;
 	
 		//
 		// Query with initial-value
@@ -89,6 +101,7 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 	    from("timer://t1?repeatCount=1")
 	      //
 	      // Another way to set the header is: .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE, constant("{\"foo\": \"bar\"}"))
+	      // which requires first importing io.operon.camel.model.CamelOperonHeaders.
 	      //
 	      .setHeader("initialValue", constant("{\"foo\": \"bar\"}"))
 	      .setBody(constant("Select: $.foo"))
@@ -180,41 +193,51 @@ protected RouteBuilder createRouteBuilder() throws Exception {
             // Load the script from the header
             //
             from("direct://start2")
-              .doTry()
-                .setHeader("operonScript", constant("Select: 123"));
-                .setBody().language("operon", null)
-              .doCatch(Exception.class)
-                .log("ERROR OCCURED :: ${exception}")
-              .end();
+              .setHeader("operonScript", constant("Select: 123"));
+              .setBody().language("operon", null)
+              ;
             
 	        
 	        //
 	        // Almost any Java-object is automatically converted into JSON, which
 	        // can be queried.
 	        // The CONTENT_TYPE must be set to "application/java" for automatic-conversion
+	        // (Note that this also sets the output-mime-type). You can also only set the input-mime-type, 
+	        // and the output-mime-type would remain as application/json.
 	        //
 	        Foo foo = new Foo();
 	        
             from("direct://start3")
-              .doTry()
-                .setHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT, constant("Select: $"))
-                .setHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE, constant("application/java"))
-                .setBody(constant(foo))
-                .setBody().language("operon", null)
-              .doCatch(Exception.class)
-                .log("ERROR OCCURED :: ${exception}")
-              .end();
+              .setHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT, constant("Select: $"))
+              .setHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE, constant("application/java"))
+              .setBody().constant(foo) // NOTE: this refers to value foo of type Foo, defined above.
+              .setBody().language("operon", null)
+              ;
             
             //
             // Query with initial value
             //
             from("direct://start4")
-              .doTry()
-                .setHeader("initialValue", constant("222"))
-                .setBody().language("operon", "Select: $")
-              .doCatch(Exception.class)
-				.log("ERROR OCCURED :: ${exception}")
-              .end();
+              .setHeader("initialValue").constant("222")
+              .setBody()
+                .language("operon", "Select: $")
+              ;
+                
+            //
+            // Splitter-example
+            //
+            from("direct://start5")
+              .setHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE)
+                .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)
+              
+              .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE)
+                .constant("{foo: [10, 20, 30]}")
+              
+              .split()
+                .language("operon", "Select: $.foo")
+                .to("direct:handleSplitValue")
+              .end()
+              ;
               
             //
             // Modules and value-bindings can be used as with the components

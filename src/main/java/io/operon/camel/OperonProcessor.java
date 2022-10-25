@@ -9,8 +9,7 @@ import io.operon.runner.OperonRunner;
 import io.operon.runner.model.OperonConfigs;
 import io.operon.runner.model.ModuleDefinition;
 import io.operon.runner.model.exception.*;
-import io.operon.runner.node.type.OperonValue;
-import io.operon.runner.node.type.RawValue;
+import io.operon.runner.node.type.*;
 import io.operon.runner.util.JsonUtil;
 import io.operon.runner.compiler.CompilerFlags;
 
@@ -50,7 +49,11 @@ public class OperonProcessor implements Processor {
 	
     private Map<String, String> namedImports = new HashMap<>();
     private List<String> supportedMimeTypes = new ArrayList<>(
-    	Arrays.asList(CamelOperonMimeTypes.MIME_APPLICATION_JSON, CamelOperonMimeTypes.MIME_APPLICATION_JAVA, CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM));
+    	Arrays.asList(CamelOperonMimeTypes.MIME_APPLICATION_JSON,
+    	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA,
+    	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST,
+    	    CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)
+    	);
 
      // no logger 
 
@@ -150,6 +153,9 @@ public class OperonProcessor implements Processor {
 			
 			if (overriddenInputMimeType == null) {
 				overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE);
+				if (overriddenInputMimeType == CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST) {
+				    overriddenInputMimeType = CamelOperonMimeTypes.MIME_APPLICATION_JAVA;
+				}
 			}
 			
 			if (overriddenInputMimeType == null) {
@@ -295,6 +301,37 @@ public class OperonProcessor implements Processor {
         }
         else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
         	return resultValue;
+        }
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)) {
+        	resultValue = resultValue.evaluate(); // unbox the OperonValue
+        	if (resultValue instanceof ArrayType) {
+        	    ArrayType array = (ArrayType) resultValue;
+        	    return array.getValues();
+        	}
+        	else if (resultValue instanceof ObjectType) {
+        	    ObjectType object = (ObjectType) resultValue;
+        	    List<PairType> pairs = object.getPairs();
+        	    
+        	    //
+        	    // Convert the PairTypes to ObjectType for output-serialization,
+        	    // otherwise PairType would serialize as "bin: 10", but we want {"bin": 10}.
+        	    //
+        	    List<ObjectType> result = new ArrayList<ObjectType>();
+        	    for (PairType pair : pairs) {
+        	        ObjectType resultPairObj = new ObjectType(pair.getStatement());
+        	        resultPairObj.addPair(pair);
+        	        result.add(resultPairObj);
+        	    }
+        	    return result;
+        	}
+        	else {
+        	    //
+        	    // Place the primitive types into list as well:
+        	    //
+        	    List<OperonValue> resultValueAsList = new ArrayList<OperonValue>();
+        	    resultValueAsList.add(resultValue);
+        	    return resultValueAsList;
+        	}
         }
         else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {
         	// Cast to raw type:

@@ -34,6 +34,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
         this.processor = new OperonProcessor();
         this.processor.setOperonScript(expression);
         this.configs = new OperonConfigs();
+        this.configs.setOutputResult(false);
         
         try {
             processor.init();

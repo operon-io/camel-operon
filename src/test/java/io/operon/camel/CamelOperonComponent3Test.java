@@ -49,13 +49,16 @@ public class CamelOperonComponent3Test extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() {
                 from("timer://foo?period=10000")
-                  .setBody(constant("Select: -> http:{\"url\": \"https://api.chucknorris.io/jokes/random\"}"))
+                  // query http-api:
+                  .setBody(constant("Select: -> http:{url: \"https://api.chucknorris.io/jokes/random\"}"))
                   .to("operon://quotes1?outputResult=true&prettyPrint=true")
-                  //.log("Setting initial value :: " + body())
+                  
+                  // set the result of the first query as context of the next query:
                   .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE, body())
                   .setBody(constant("Select: $.body.value"))
                   .to("operon://quotes2")
-                  .to("mock:result");
+                  .to("mock:result")
+                  ;
             }
         };
     }

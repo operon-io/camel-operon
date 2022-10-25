@@ -7,22 +7,28 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Produce;
+import org.apache.camel.Predicate;
 
-public class CamelOperonLanguage7Test extends CamelTestSupport {
+import io.operon.runner.node.type.NumberType;
+
+public class CamelOperonLanguage5OutputTypeTest extends CamelTestSupport {
 
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
 
-    // The output is set as application/octet-stream, which should keep the result
-    // as an byte-array.
+    // The output is set as application/java, which should keep the result
+    // as Operon typed value.
     @Test
     public void testOperonExpr() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
-        mock.expectedBodiesReceived("RAW VALUE");
+        mock.expectedBodiesReceived("123");
         
         pt.sendBody("");
         assertMockEndpointsSatisfied();
+        
+        assertEquals("io.operon.runner.node.type.NumberType", mock.getReceivedExchanges().get(0).
+            getIn().getBody().getClass().getName());
     }
 
     @Override
@@ -31,10 +37,9 @@ public class CamelOperonLanguage7Test extends CamelTestSupport {
             public void configure() {
                 from("direct://start")
                   .doTry()
-                    .setHeader("INPUTMIMETYPE", constant("application/octet-stream"))
-                    .setHeader("OUTPUTMIMETYPE", constant("application/octet-stream"))
-                    .setHeader("INITIALVALUE", constant("RAW VALUE".getBytes()))
-                    .setBody().language("operon", "Select: $")
+                    .setHeader("inputMimeType", constant("application/json"))
+                    .setHeader("outputMimeType", constant("application/java"))
+                    .setBody().language("operon", "Select: 123")
                     .to("mock:result")
                   .doCatch(Exception.class)
                     .setBody().constant("Error occured.")
