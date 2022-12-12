@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.7.1-RELEASE</version>
+    <version>0.9.8.2-RELEASE</version>
   </dependency>
 ```
 
@@ -65,9 +65,6 @@ The headers are listed in the class CamelOperonHeaders and it is encouraged to u
 	- When "application/java", then keeps the result as Operon typed value, e.g. NumberType.
 	- When "application/java-list", then pulls out the Java Lists from the Operon typed values. This allows using the Camel's Split-EIP with Operon-expression. ArrayType gives List<Node>, ObjectType gives List<ObjectType>, and other types are plainly put into a List<OperonValue>.
 	- When "application/octet-stream", then expected result is RawValue, from which the byte-array is taken.
-
-* content_type: sets both the input and output mime-type, if they are not set. Allowed values: application/json, application/java, application/java-list (inputMimeType will be set as application/java), application/octet-stream.
-	- CamelOperonHeaders.HEADER_CONTENT_TYPE
 
 ### Component-examples
 
@@ -201,15 +198,13 @@ protected RouteBuilder createRouteBuilder() throws Exception {
 	        //
 	        // Almost any Java-object is automatically converted into JSON, which
 	        // can be queried.
-	        // The CONTENT_TYPE must be set to "application/java" for automatic-conversion
-	        // (Note that this also sets the output-mime-type). You can also only set the input-mime-type, 
-	        // and the output-mime-type would remain as application/json.
+	        // The INPUT_MIME_TYPE must be set to "application/java" for automatic-conversion
 	        //
 	        Foo foo = new Foo();
 	        
             from("direct://start3")
               .setHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT, constant("Select: $"))
-              .setHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE, constant("application/java"))
+              .setHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE, constant("application/java"))
               .setBody().constant(foo) // NOTE: this refers to value foo of type Foo, defined above.
               .setBody().language("operon", null)
               ;

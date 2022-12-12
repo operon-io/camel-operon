@@ -43,7 +43,7 @@ public class CamelOperonLanguage8OutputTypeListTest extends CamelTestSupport {
                         .constant(CamelOperonMimeTypes.MIME_APPLICATION_JSON)
                     
                     .setHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE)
-                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)
+                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)
                     
                     .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE)
                         .constant("[10,20,30]")

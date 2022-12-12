@@ -4,7 +4,6 @@ public class CamelOperonHeaders {
 	
     public static final String HEADER_OUTPUT_MIME_TYPE = "outputMimeType";
     public static final String HEADER_INPUT_MIME_TYPE = "inputMimeType";
-    public static final String HEADER_CONTENT_TYPE = "content_type";
     public static final String HEADER_LANGUAGE_SCRIPT = "operonScript";
     public static final String HEADER_LANGUAGE_SCRIPT_PATH = "operonScriptPath";
     public static final String HEADER_INITIAL_VALUE = "initialValue";

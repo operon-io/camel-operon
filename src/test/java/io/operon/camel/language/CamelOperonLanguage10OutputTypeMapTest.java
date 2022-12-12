@@ -2,6 +2,9 @@ package io.operon.camel.language;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.camel.Exchange;
@@ -16,7 +19,7 @@ import io.operon.camel.model.CamelOperonHeaders;
 import io.operon.camel.model.CamelOperonMimeTypes;
 import io.operon.runner.node.type.*;
 
-public class CamelOperonLanguage10OutputTypeListTest extends CamelTestSupport {
+public class CamelOperonLanguage10OutputTypeMapTest extends CamelTestSupport {
 
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
@@ -31,13 +34,12 @@ public class CamelOperonLanguage10OutputTypeListTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
         
         List<Exchange> exs = mock.getReceivedExchanges();
-        assertTrue(exs.get(0).getIn().getBody() instanceof ObjectType);
-        assertTrue(exs.get(1).getIn().getBody() instanceof ObjectType);
-        assertTrue(exs.get(2).getIn().getBody() instanceof ObjectType);
-        
-        assertTrue(exs.get(0).getIn().getBody().toString().equals("{\"bin\": 10}"));
-        assertTrue(exs.get(1).getIn().getBody().toString().equals("{\"bai\": 20}"));
-        assertTrue(exs.get(2).getIn().getBody().toString().equals("{\"baa\": 30}"));
+
+        assertEquals("java.util.LinkedHashMap$Entry", exs.get(0).getIn().getBody().getClass().getName());
+
+        assertEquals("10.0", exs.get(0).getIn().getBody(Map.Entry.class).getValue().toString());
+        assertEquals("20.0", exs.get(1).getIn().getBody(Map.Entry.class).getValue().toString());
+        assertEquals("30.0", exs.get(2).getIn().getBody(Map.Entry.class).getValue().toString());
     }
 
     @Override
@@ -46,7 +48,7 @@ public class CamelOperonLanguage10OutputTypeListTest extends CamelTestSupport {
             public void configure() {
                 from("direct://start")
                     .setHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE)
-                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)
+                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)
                     
                     .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE)
                         .constant("{bin: 10, bai: 20, baa: 30}")

@@ -16,7 +16,7 @@ public class CamelOperonLanguage5OutputTypeTest extends CamelTestSupport {
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
 
-    // The output is set as application/java, which should keep the result
+    // The output is set as application/java_operon, which should keep the result
     // as Operon typed value.
     @Test
     public void testOperonExpr() throws Exception {
@@ -38,7 +38,7 @@ public class CamelOperonLanguage5OutputTypeTest extends CamelTestSupport {
                 from("direct://start")
                   .doTry()
                     .setHeader("inputMimeType", constant("application/json"))
-                    .setHeader("outputMimeType", constant("application/java"))
+                    .setHeader("outputMimeType", constant("application/java-operon"))
                     .setBody().language("operon", "Select: 123")
                     .to("mock:result")
                   .doCatch(Exception.class)

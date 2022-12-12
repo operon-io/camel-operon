@@ -10,6 +10,7 @@ import io.operon.runner.model.OperonConfigs;
 import io.operon.runner.model.ModuleDefinition;
 import io.operon.runner.model.exception.*;
 import io.operon.runner.node.type.*;
+import io.operon.runner.node.Node;
 import io.operon.runner.util.JsonUtil;
 import io.operon.runner.compiler.CompilerFlags;
 
@@ -32,6 +33,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +53,7 @@ public class OperonProcessor implements Processor {
     private List<String> supportedMimeTypes = new ArrayList<>(
     	Arrays.asList(CamelOperonMimeTypes.MIME_APPLICATION_JSON,
     	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA,
-    	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST,
+    	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA_OPERON,
     	    CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)
     	);
 
@@ -65,6 +67,8 @@ public class OperonProcessor implements Processor {
     private List<ModuleDefinition> modules;
     private boolean debug = false;
 
+    private Gson gson;
+
     public void process(Exchange exchange) throws Exception {
         Object mappedBody = processMapping(exchange);
         exchange.getIn().setBody(mappedBody);
@@ -74,6 +78,8 @@ public class OperonProcessor implements Processor {
         //
         // init-code here, e.g. load operon-modules
         //
+        gson = new Gson();
+        
         if (modules == null) {
             modules = new ArrayList<ModuleDefinition>();
         }
@@ -152,13 +158,6 @@ public class OperonProcessor implements Processor {
 			String overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE);
 			
 			if (overriddenInputMimeType == null) {
-				overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE);
-				if (overriddenInputMimeType == CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST) {
-				    overriddenInputMimeType = CamelOperonMimeTypes.MIME_APPLICATION_JAVA;
-				}
-			}
-			
-			if (overriddenInputMimeType == null) {
 				overriddenInputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
 			}
 			
@@ -175,10 +174,6 @@ public class OperonProcessor implements Processor {
 
         if (_outputMimeType == null || "".equalsIgnoreCase(_outputMimeType.trim())) {
 			String overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE);
-			
-			if (overriddenOutputMimeType == null) {
-				overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_CONTENT_TYPE);
-			}
 			
 			if (overriddenOutputMimeType == null) {
 				overriddenOutputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
@@ -257,7 +252,6 @@ public class OperonProcessor implements Processor {
 			
 			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
 				// map from pojo
-				Gson gson = new Gson();
 				String jsonString = gson.toJson(initialValueData);
 				if (jsonString.isEmpty()) {
 					jsonString = "empty";
@@ -299,38 +293,40 @@ public class OperonProcessor implements Processor {
         if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
         	return resultValue.toString();
         }
-        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_OPERON)) {
         	return resultValue;
         }
-        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
         	resultValue = resultValue.evaluate(); // unbox the OperonValue
         	if (resultValue instanceof ArrayType) {
-        	    ArrayType array = (ArrayType) resultValue;
-        	    return array.getValues();
+            	Object result = gson.fromJson(resultValue.toString(), ArrayList.class);
+            	return result;
         	}
         	else if (resultValue instanceof ObjectType) {
-        	    ObjectType object = (ObjectType) resultValue;
-        	    List<PairType> pairs = object.getPairs();
-        	    
-        	    //
-        	    // Convert the PairTypes to ObjectType for output-serialization,
-        	    // otherwise PairType would serialize as "bin: 10", but we want {"bin": 10}.
-        	    //
-        	    List<ObjectType> result = new ArrayList<ObjectType>();
-        	    for (PairType pair : pairs) {
-        	        ObjectType resultPairObj = new ObjectType(pair.getStatement());
-        	        resultPairObj.addPair(pair);
-        	        result.add(resultPairObj);
-        	    }
-        	    return result;
+            	Object result = gson.fromJson(resultValue.toString(), LinkedHashMap.class);
+            	return result;
+        	}
+        	else if (resultValue instanceof StringType) {
+        	    return ((StringType) resultValue).getJavaStringValue();
+        	}
+        	else if (resultValue instanceof NumberType) {
+        	    return ((NumberType) resultValue).getDoubleValue();
+        	}
+        	else if (resultValue instanceof NullType) {
+        	    return null;
+        	}
+        	else if (resultValue instanceof RawValue) {
+        	    return ((RawValue) resultValue).getBytes();
+        	}
+        	else if (resultValue instanceof TrueType) {
+        	    return true;
+        	}
+        	else if (resultValue instanceof FalseType) {
+        	    return false;
         	}
         	else {
-        	    //
-        	    // Place the primitive types into list as well:
-        	    //
-        	    List<OperonValue> resultValueAsList = new ArrayList<OperonValue>();
-        	    resultValueAsList.add(resultValue);
-        	    return resultValueAsList;
+        	    // Path, EmptyType, StreamValue, EndValueType
+        	    return resultValue;
         	}
         }
         else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {

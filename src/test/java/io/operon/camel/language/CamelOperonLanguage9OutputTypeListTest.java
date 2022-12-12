@@ -31,13 +31,11 @@ public class CamelOperonLanguage9OutputTypeListTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
         
         List<Exchange> exs = mock.getReceivedExchanges();
-        assertTrue(exs.get(0).getIn().getBody() instanceof NumberType);
-        assertTrue(exs.get(1).getIn().getBody() instanceof NumberType);
-        assertTrue(exs.get(2).getIn().getBody() instanceof NumberType);
-        
-        assertTrue(exs.get(0).getIn().getBody().toString().equals("10"));
-        assertTrue(exs.get(1).getIn().getBody().toString().equals("20"));
-        assertTrue(exs.get(2).getIn().getBody().toString().equals("30"));
+        assertEquals("java.lang.Double", exs.get(0).getIn().getBody().getClass().getName());
+
+        assertEquals(10.0, (double) exs.get(0).getIn().getBody(Double.class), 0); // last arg is delta
+        assertEquals(20.0, (double) exs.get(1).getIn().getBody(Double.class), 0);
+        assertEquals(30.0, (double) exs.get(2).getIn().getBody(Double.class), 0);
     }
 
     @Override
@@ -46,7 +44,7 @@ public class CamelOperonLanguage9OutputTypeListTest extends CamelTestSupport {
             public void configure() {
                 from("direct://start")
                     .setHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE)
-                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_LIST)
+                        .constant(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)
                     
                     .setHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE)
                         .constant("{bin: [10,20,30]}")
