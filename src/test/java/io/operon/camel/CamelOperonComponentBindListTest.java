@@ -16,6 +16,8 @@
 
 package io.operon.camel;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.camel.builder.RouteBuilder;
@@ -28,30 +30,52 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class CamelOperonComponent5FileTest extends CamelTestSupport {
+import io.operon.camel.model.CamelOperonHeaders;
+
+public class CamelOperonComponentBindListTest extends CamelTestSupport {
 
     @Test
     public void testCamelOperonComponent() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(2);
-        mock.await();
+        mock.expectedMinimumMessageCount(1);
         List<Exchange> exchanges = mock.getExchanges();
-        //System.out.println("EXCHANGE COUNT :: " + exchanges.size());
+        mock.await();
         for (Exchange ex : exchanges) {
             String messageBody = ex.getIn().getBody(String.class);
-            //System.out.println("MESSAGE :: " + messageBody);
-            assertEquals("222", messageBody);
+            assertEquals("\"bar\"", messageBody);
         }
-        
+    }
+
+    @Test
+    public void testCamelOperonComponent2() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result2");
+        mock.expectedMinimumMessageCount(1);
+        List<Exchange> exchanges = mock.getExchanges();
+        mock.await();
+        for (Exchange ex : exchanges) {
+            String messageBody = ex.getIn().getBody(String.class);
+            assertEquals("100", messageBody);
+        }
     }
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
+        
+        String valueBindings = "foo=\"bar\";bin=100";
+        
         return new RouteBuilder() {
             public void configure() {
                 from("timer://foo?period=1000")
-                  .to("operon://foo?queryFile=file://./src/test/resources/queries/q.op")
+                  .setHeader("operonBindList", constant(valueBindings))
+                  .setBody(constant("Select: $foo"))
+                  .to("operon://bar")
                   .to("mock:result");
+                  
+                from("timer://bar?period=1000")
+                  .setHeader(CamelOperonHeaders.HEADER_OPERON_BIND_LIST, constant(valueBindings))
+                  .setBody(constant("Select: $bin"))
+                  .to("operon://bar2")
+                  .to("mock:result2");
             }
         };
     }

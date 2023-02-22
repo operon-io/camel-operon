@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022, operon.io
+ *   Copyright 2022-2023, operon.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.operon.camel;
 
 import java.util.Map;
-
 import org.apache.camel.Endpoint;
-
 import org.apache.camel.support.DefaultComponent;
 
 @org.apache.camel.spi.annotations.Component("operon")

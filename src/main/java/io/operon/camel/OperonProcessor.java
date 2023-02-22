@@ -1,3 +1,18 @@
+/*
+ *   Copyright 2022-2023, operon.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.operon.camel;
 
 import io.operon.runner.OperonContext;
@@ -229,15 +244,28 @@ public class OperonProcessor implements Processor {
 		
 		//
 		// Check headers for value-bindings
-		// E.g. OPERON_VALUE_BINDINGS Map<String, String> {$a: {foo: 111} }
 		//
 		Map valueBindings = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS, Map.class);
 		if (valueBindings != null) {
 		    HashMap<String, String> valueBindingsHM = (HashMap<String, String>) valueBindings;
 		    // loop over, and set into configs.
-		    for (Map.Entry<String,String> entry : valueBindingsHM.entrySet()) {
+		    for (Map.Entry<String, String> entry : valueBindingsHM.entrySet()) {
                 OperonValue operonValue = JsonUtil.operonValueFromString(entry.getValue());
                 configs.setNamedValue("$" + entry.getKey(), operonValue);
+		    }
+		}
+		
+		//
+		// Check headers for value-bindings list, e.g. "bin=foo;bai=bar"
+		//
+		String valueBindingsStr = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_BIND_LIST, String.class);
+		if (valueBindingsStr != null) {
+		    String[] kvs = valueBindingsStr.split(";");
+		    // loop over, and set into configs.
+		    for (int i = 0; i < kvs.length; i ++) {
+                String[] kv = kvs[i].split("=");
+                OperonValue operonValue = JsonUtil.operonValueFromString(kv[1]);
+                configs.setNamedValue("$" + kv[0], operonValue);
 		    }
 		}
 		
