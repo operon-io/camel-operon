@@ -15,26 +15,6 @@
  */
 package io.operon.camel;
 
-import io.operon.runner.OperonContext;
-import io.operon.runner.Context;
-import io.operon.runner.EmptyContext;
-import io.operon.runner.statement.DefaultStatement;
-import io.operon.runner.statement.Statement;
-import io.operon.runner.OperonRunner;
-import io.operon.runner.model.OperonConfigs;
-import io.operon.runner.model.ModuleDefinition;
-import io.operon.runner.model.exception.*;
-import io.operon.runner.node.type.*;
-import io.operon.runner.node.Node;
-import io.operon.runner.util.JsonUtil;
-import io.operon.runner.compiler.CompilerFlags;
-
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.camel.support.MessageHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,18 +33,44 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.support.MessageHelper;
+import org.apache.camel.ProducerTemplate;
+
+import io.operon.runner.OperonContext;
+import io.operon.runner.Context;
+import io.operon.runner.EmptyContext;
+import io.operon.runner.statement.DefaultStatement;
+import io.operon.runner.statement.Statement;
+import io.operon.runner.OperonRunner;
+import io.operon.runner.model.OperonConfigs;
+import io.operon.runner.model.ModuleDefinition;
+import io.operon.runner.model.exception.*;
+import io.operon.runner.node.type.*;
+import io.operon.runner.node.Node;
+import io.operon.runner.util.JsonUtil;
+import io.operon.runner.compiler.CompilerFlags;
+
 import io.operon.camel.util.QueryLoadUtil;
 import io.operon.camel.model.CamelOperonHeaders;
 import io.operon.camel.model.CamelOperonMimeTypes;
 import io.operon.camel.model.exception.UnsupportedMimeTypeException;
+import io.operon.camel.function.ProducerTemplateFunc;
 
 import com.google.gson.Gson;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class OperonProcessor implements Processor {
+    private static final Logger LOG = LoggerFactory.getLogger(OperonProcessor.class);
     
     private List<String> modulePaths;
 	
-    private Map<String, String> namedImports = new HashMap<>();
+    // TODO: add support for named imports
+    //private Map<String, String> namedImports = new HashMap<>();
+    
     private List<String> supportedMimeTypes = new ArrayList<>(
     	Arrays.asList(CamelOperonMimeTypes.MIME_APPLICATION_JSON,
     	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA,
@@ -83,6 +89,7 @@ public class OperonProcessor implements Processor {
     private boolean debug = false;
 
     private Gson gson;
+    private ProducerTemplate pt;
 
     public void process(Exchange exchange) throws Exception {
         Object mappedBody = processMapping(exchange);
@@ -269,6 +276,16 @@ public class OperonProcessor implements Processor {
 		    }
 		}
 		
+		//
+		// Set the ProducerTemplate, that can be used from the query
+		//
+		ProducerTemplate userPt = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, ProducerTemplate.class);
+		
+		if (userPt != null) {
+    		ProducerTemplateFunc ptFunc = new ProducerTemplateFunc(userPt, exchange);
+    		OperonRunner.registerFunction("camel", ptFunc);
+		}
+		
 		if (initialValueData != null) {
 			if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
 				String initialValueStr = (String) initialValueData;
@@ -308,6 +325,7 @@ public class OperonProcessor implements Processor {
 			    resultValue = OperonRunner.doQueryWithInitialValueAndModules(query, initialValue, configs, modules);
 			}
 		}
+		
 		else {
 			// no initial value
 			resultValue = OperonRunner.doQuery(query, configs);
@@ -365,6 +383,14 @@ public class OperonProcessor implements Processor {
         else {
         	throw new UnsupportedMimeTypeException(_outputMimeType);
         }
+    }
+
+    public void setProducerTemplate(ProducerTemplate pt) {
+        this.pt = pt;
+    }
+    
+    public ProducerTemplate getProducerTemplate() {
+        return this.pt;
     }
 
     public void setDebug(boolean debug) {

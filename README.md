@@ -38,6 +38,9 @@ The headers are listed in the class CamelOperonHeaders and it is encouraged to u
 * initialValue: allows to set the root-value ($) for the query.
 	- CamelOperonHeaders.HEADER_INITIAL_VALUE
 
+* operonProducerTemplate: pass the producer-template for Operon-query, so the Camel-routes may be called from Operon. See example further from this document.
+	- CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE
+
 * operonModules: loads any external Operon-scripts as libraries before executing the script.
 	- CamelOperonHeaders.HEADER_OPERON_MODULES
 
@@ -243,4 +246,51 @@ protected RouteBuilder createRouteBuilder() throws Exception {
         }
     };
 }
+```
+
+### Using ProducerTemplate
+
+The call-component has params-options, which for the camel's ProducerTemplate as the following:
+
+* uri: the endpoint-uri, e.g.:
+	- direct:foo
+	- https://api.chucknorris.io/jokes/random
+	- any other Camel-producer component
+
+* nullBody: true / false (default). When true then Camel-Operon sends null-body into Camel-endpoint.
+* async: true / false (default). When truem then ProducerTemplate.sendBody is used (or sendBodyAndHeaders).
+* headers: Object. The keys and values from this object are mapped into Camel-headers, which are then send with ProducerTemplate.requestBodyAndHeaders -method (or sendBodyAndHeaders if async).
+* readAs: Json, Raw, String, Double, Integer. Tells how to parse the result of the called route (when option async is false). The default is JSON, which expects that the result can be read as JSON. If this fails, then the error is rised.
+	- Raw: expects that the result is String, but reads it into byte-array (Operon's RawValue)
+	- String: expects that the result is String, converts into Operon's StringType
+	- Double: expects that the result is Double, converts into Operon's NumberType with dynamic precision resolution
+	- Integer: expects that the result is Integer, converts into Operon's NumberType with precision 0
+
+
+```
+	//
+	// NOTE: ProducerTemplate userPt must have been defined earlier, such as: 
+	// 
+    @Produce
+    protected ProducerTemplate userPt;
+    ...
+    from("direct:start")
+        .log("Camel running direct:start")
+        .setHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, constant(userPt))
+        .setBody().language("operon", 
+            "Select: -> call:camel:{params: {uri: \"direct:foo\", readAs: \"String\", headers: {bar: \"barbaz\"}}} => upperCase()")
+        .to("mock:result")
+    ;
+    
+    from("direct:foo")
+        .log("Setting value \"Foo\" to body. Body now :: ${body}, header bar: ${header.bar}")
+        .setBody().header("bar")
+    ;
+    
+    from("direct:fetch-joke")
+        .setHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, constant(userPt))
+        .setBody().language("operon", 
+            "Select: -> call:camel:{params: {uri: \"https://api.chucknorris.io/jokes/random\", headers: {camelHttpMethod: \"GET\"}}}.value")
+        .log("Joke: ${body}")
+    ;
 ```
