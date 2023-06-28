@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.10-RELEASE</version>
+    <version>0.9.13-RELEASE</version>
   </dependency>
 ```
 
@@ -272,11 +272,11 @@ The call-component has params-options, which for the camel's ProducerTemplate as
 	// NOTE: ProducerTemplate userPt must have been defined earlier, such as: 
 	// 
     @Produce
-    protected ProducerTemplate userPt;
+    protected ProducerTemplate userPt; // Define ProducerTemplate here
     ...
     from("direct:start")
         .log("Camel running direct:start")
-        .setHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, constant(userPt))
+        .setHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, constant(userPt)) // Pass the PT here
         .setBody().language("operon", 
             "Select: -> call:camel:{params: {uri: \"direct:foo\", readAs: \"String\", headers: {bar: \"barbaz\"}}} => upperCase()")
         .to("mock:result")

@@ -51,6 +51,7 @@ import io.operon.runner.node.type.*;
 import io.operon.runner.node.Node;
 import io.operon.runner.util.JsonUtil;
 import io.operon.runner.compiler.CompilerFlags;
+import io.operon.runner.OperonFunction;
 
 import io.operon.camel.util.QueryLoadUtil;
 import io.operon.camel.model.CamelOperonHeaders;
@@ -77,8 +78,6 @@ public class OperonProcessor implements Processor {
     	    CamelOperonMimeTypes.MIME_APPLICATION_JAVA_OPERON,
     	    CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)
     	);
-
-     // no logger 
 
     private String inputMimeType;
     private String outputMimeType;
@@ -275,6 +274,18 @@ public class OperonProcessor implements Processor {
                 configs.setNamedValue("$" + kv[0], operonValue);
 		    }
 		}
+		
+		//
+		// Register user-defined Java-functions
+		//
+		Map<String, OperonFunction> operonFunctionsMap = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_FUNCTIONS, Map.class);
+        if (operonFunctionsMap != null) {
+            for (Map.Entry<String, OperonFunction> entry : operonFunctionsMap.entrySet()) {
+                String fnKey =  entry.getKey();
+                OperonFunction fn = entry.getValue();
+                OperonRunner.registerFunction(fnKey, fn);
+            }
+        }
 		
 		//
 		// Set the ProducerTemplate, that can be used from the query

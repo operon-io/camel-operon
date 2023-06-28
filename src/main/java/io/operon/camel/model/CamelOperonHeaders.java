@@ -26,5 +26,6 @@ public class CamelOperonHeaders {
     public static final String HEADER_OPERON_BIND_LIST = "operonBindList";
     public static final String HEADER_OPERON_MODULES = "operonModules";
     public static final String HEADER_PRODUCER_TEMPLATE = "operonProducerTemplate";
+    public static final String HEADER_OPERON_FUNCTIONS = "operonFunctions";
     public static final String HEADER_OPERON_CONFIGS = "operonConfigs";
 }

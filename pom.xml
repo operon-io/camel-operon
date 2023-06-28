@@ -6,17 +6,19 @@
   <parent>
     <groupId>io.operon</groupId>
     <artifactId>operon-core-parent</artifactId>
-    <version>0.9.10-RELEASE</version>
+    <version>0.9.13-RELEASE</version>
   </parent>
 
   <groupId>io.operon</groupId>
   <artifactId>camel-operon</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.10.1-RELEASE</version>
+  <version>0.9.13-RELEASE</version>
 
   <name>Camel Operon Component</name>
   <url>https://operon.io</url>
-  <description>Camel-operon is a camel-component for running Operon. Operon is a programming language which can be easily embedded with JVM-based 
+  <description>Camel-operon is a camel-component for running Operon from Camel routes.
+               It is also possible to call Camel routes from Operon.
+               Operon is a programming language which can be easily embedded with JVM-based 
                languages (Java, Scala, Groovy, Kotlin, Clojure, etc.) or run standalone with the native-version. 
                Operon is especially great for transforming and handling JSON-data.
   </description>
@@ -57,8 +59,8 @@
     <maven.build-helper-plugin.version>3.3.0</maven.build-helper-plugin.version>
     <maven.resources-plugin.version>3.3.0</maven.resources-plugin.version>
     
-    <camel.version>3.20.2</camel.version>
-    <operon.version>0.9.10-RELEASE</operon.version>
+    <camel.version>3.20.5</camel.version>
+    <operon.version>0.9.13-RELEASE</operon.version>
   </properties>
 
   <dependencies>

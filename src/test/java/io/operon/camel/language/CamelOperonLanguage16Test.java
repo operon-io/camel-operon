@@ -15,6 +15,9 @@
  */
 package io.operon.camel.language;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -22,13 +25,17 @@ import org.junit.Test;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Produce;
 
+import io.operon.runner.OperonFunction;
+
 import io.operon.camel.model.CamelOperonHeaders;
+import io.operon.camel.function.AcmeFunc;
+
 
 /**
  * Tests for running Operon
  * 
  */
-public class CamelOperonLanguage15Test extends CamelTestSupport {
+public class CamelOperonLanguage16Test extends CamelTestSupport {
 
     @Produce(uri = "direct:start")
     protected ProducerTemplate pt;
@@ -36,10 +43,13 @@ public class CamelOperonLanguage15Test extends CamelTestSupport {
     @Produce
     protected ProducerTemplate userPt;
 
+    private Map<String, OperonFunction> functionsMap;
+
     @Test
     public void testOperonExpr() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
+        mock.expectedBodiesReceived("\"FOO!\"");
         
         pt.sendBody("");
         assertMockEndpointsSatisfied();
@@ -47,13 +57,18 @@ public class CamelOperonLanguage15Test extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
+        AcmeFunc acmeFunc = new AcmeFunc();
+        
+        functionsMap = new HashMap<String, OperonFunction>();
+        functionsMap.put("acme", acmeFunc);
+        
         return new RouteBuilder() {
             public void configure() {
                 from("direct://start")
                     .log("Camel running direct:start")
-                    .setHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, constant(userPt))
+                    .setHeader(CamelOperonHeaders.HEADER_OPERON_FUNCTIONS, constant(functionsMap))
                     .setBody().language("operon", 
-                        "Select: -> call:camel:{params: {uri: \"https://api.chucknorris.io/jokes/random\", headers: {camelHttpMethod: \"GET\"}}}.value")
+                        "Select: -> call:acme:{params: {value: \"foo\"}} => upperCase()")
                     .to("mock:result")
                 ;
             }
