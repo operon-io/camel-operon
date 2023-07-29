@@ -249,6 +249,17 @@ public class OperonProcessor implements Processor {
 		OperonValue resultValue = null;
 		
 		//
+		// Check headers for index-list, e.g. "$;$foo;$bar"
+		// These values will be adviced to be indexed when parsed by the JsonUtil
+		//
+		String indexListStr = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_INDEX_LIST, String.class);
+		String[] indexList = {};
+		
+		if (indexListStr != null) {
+		    indexList = indexListStr.split(";");
+		}
+		
+		//
 		// Check headers for value-bindings
 		//
 		Map valueBindings = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS, Map.class);
@@ -256,7 +267,24 @@ public class OperonProcessor implements Processor {
 		    HashMap<String, String> valueBindingsHM = (HashMap<String, String>) valueBindings;
 		    // loop over, and set into configs.
 		    for (Map.Entry<String, String> entry : valueBindingsHM.entrySet()) {
-                OperonValue operonValue = JsonUtil.operonValueFromString(entry.getValue());
+				OperonValue operonValue = null;
+				
+				boolean indexValue = false;
+				
+				for (int k = 0; k < indexList.length; k ++) {
+				    if (indexList[k].trim().equals("$" + entry.getKey())) {
+				        indexValue = true;
+				        break;
+				    }
+				}
+				if (indexValue) {
+    				CompilerFlags[] flags = {CompilerFlags.INDEX_ROOT};
+    				operonValue = JsonUtil.operonValueFromString(entry.getValue(), flags);
+				}
+				else {
+				    operonValue = JsonUtil.operonValueFromString(entry.getValue());
+				}
+                
                 configs.setNamedValue("$" + entry.getKey(), operonValue);
 		    }
 		}
@@ -270,7 +298,26 @@ public class OperonProcessor implements Processor {
 		    // loop over, and set into configs.
 		    for (int i = 0; i < kvs.length; i ++) {
                 String[] kv = kvs[i].split("=");
-                OperonValue operonValue = JsonUtil.operonValueFromString(kv[1]);
+                
+                OperonValue operonValue = null;
+				
+				boolean indexValue = false;
+				
+				for (int k = 0; k < indexList.length; k ++) {
+				    if (indexList[k].trim().equals("$" + kv[0])) {
+				        indexValue = true;
+				        break;
+				    }
+				}
+				if (indexValue) {
+    				CompilerFlags[] flags = {CompilerFlags.INDEX_ROOT};
+    				operonValue = JsonUtil.operonValueFromString(kv[1], flags);
+				}
+				else {
+				    operonValue = JsonUtil.operonValueFromString(kv[1]);
+				}
+                
+                
                 configs.setNamedValue("$" + kv[0], operonValue);
 		    }
 		}
@@ -303,7 +350,21 @@ public class OperonProcessor implements Processor {
 				if (initialValueStr.isEmpty()) {
 					initialValueStr = "empty";
 				}
-				initialValue = JsonUtil.operonValueFromString(initialValueStr);
+				
+				boolean indexRoot = false;
+				for (int i = 0; i < indexList.length; i ++) {
+				    if (indexList[i].trim().equals("$")) {
+				        indexRoot = true;
+				        break;
+				    }
+				}
+				if (indexRoot) {
+    				CompilerFlags[] flags = {CompilerFlags.INDEX_ROOT};
+    				initialValue = JsonUtil.operonValueFromString(initialValueStr, flags);
+				}
+				else {
+				    initialValue = JsonUtil.operonValueFromString(initialValueStr);
+				}
 			}
 			
 			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
@@ -312,7 +373,20 @@ public class OperonProcessor implements Processor {
 				if (jsonString.isEmpty()) {
 					jsonString = "empty";
 				}
-				initialValue = JsonUtil.operonValueFromString(jsonString);
+				boolean indexRoot = false;
+				for (int i = 0; i < indexList.length; i ++) {
+				    if (indexList[i].trim().equals("$")) {
+				        indexRoot = true;
+				        break;
+				    }
+				}
+				if (indexRoot) {
+    				CompilerFlags[] flags = {CompilerFlags.INDEX_ROOT};
+    				initialValue = JsonUtil.operonValueFromString(jsonString, flags);
+				}
+				else {
+				    initialValue = JsonUtil.operonValueFromString(jsonString);
+				}
 			}
 			
 			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {

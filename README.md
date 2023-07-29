@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.13-RELEASE</version>
+    <version>0.9.14-RELEASE</version>
   </dependency>
 ```
 
@@ -54,6 +54,9 @@ The headers are listed in the class CamelOperonHeaders and it is encouraged to u
 
 * operonBindList: simpler way to bind values from String such as: `"bin=\"foo\";bai=bar"`
 	- CamelOperonHeaders.HEADER_OPERON_BIND_LIST
+
+* operonIndexList: advice parser to create index for objects for the given named values. E.g. as: `"$;$foo"` advices to index the root ($) -value and value $foo (which user must bind to the query with bind-list or value-bindings).
+	- CamelOperonHeaders.HEADER_OPERON_INDEX_LIST
 
 * operonScript: the operon-script can be set into this header
 	- CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT

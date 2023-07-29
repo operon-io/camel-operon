@@ -1,0 +1,73 @@
+/*
+ *   Copyright 2022-2023, operon.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.operon.camel.language;
+
+import java.util.Map;
+import java.util.HashMap;
+
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.Test;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.Produce;
+
+import io.operon.runner.OperonFunction;
+
+import io.operon.camel.model.CamelOperonHeaders;
+import io.operon.camel.function.AcmeFunc;
+
+
+/**
+ * Tests for running Operon
+ * 
+ */
+public class CamelOperonLanguage17Test extends CamelTestSupport {
+
+    @Produce(uri = "direct:start")
+    protected ProducerTemplate pt;
+
+    @Produce
+    protected ProducerTemplate userPt;
+
+    @Test
+    public void testOperonExpr() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        mock.expectedBodiesReceived("[222, 444]");
+        
+        pt.sendBody("");
+        assertMockEndpointsSatisfied();
+    }
+
+    @Override
+    protected RouteBuilder createRouteBuilder() throws Exception {
+        return new RouteBuilder() {
+            public void configure() {
+                from("direct://start")
+                    .log("Camel running direct:start")
+                    .setHeader("initialValue", constant("{bin: 123, bai: 222, baa: 333}"))
+                    .setHeader(CamelOperonHeaders.HEADER_OPERON_BIND_LIST, constant("baba=444;babba=555"))
+                    .setHeader(CamelOperonHeaders.HEADER_OPERON_INDEX_LIST, constant("$;$baba"))
+                    .setBody().language("operon", 
+                        "Select: [.bai, $baba]")
+                    .to("mock:result")
+                ;
+            }
+        };
+    }
+}
+
