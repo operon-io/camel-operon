@@ -38,6 +38,9 @@ public class CamelOperonComponentValueBindingsTest extends CamelTestSupport {
     public void testCamelOperonComponent() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", null);
+        
         List<Exchange> exchanges = mock.getExchanges();
         mock.await();
         for (Exchange ex : exchanges) {
@@ -50,6 +53,9 @@ public class CamelOperonComponentValueBindingsTest extends CamelTestSupport {
     public void testCamelOperonComponent2() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result2");
         mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case2", null);
+        
         List<Exchange> exchanges = mock.getExchanges();
         mock.await();
         for (Exchange ex : exchanges) {
@@ -67,13 +73,13 @@ public class CamelOperonComponentValueBindingsTest extends CamelTestSupport {
         
         return new RouteBuilder() {
             public void configure() {
-                from("timer://foo?period=1000")
+                from("direct:case1")
                   .setHeader("OPERONVALUEBINDINGS", constant(valueBindings))
                   .setBody(constant("Select: $foo"))
                   .to("operon://bar")
                   .to("mock:result");
                   
-                from("timer://bar?period=1000")
+                from("direct:case2")
                   .setHeader(CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS, constant(valueBindings))
                   .setBody(constant("Select: $bin"))
                   .to("operon://bar2")

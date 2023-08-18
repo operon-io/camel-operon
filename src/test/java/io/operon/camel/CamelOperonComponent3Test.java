@@ -36,6 +36,9 @@ public class CamelOperonComponent3Test extends CamelTestSupport {
     public void testCamelOperonComponent() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", null);
+        
         List<Exchange> exchanges = mock.getExchanges();
         mock.await();
         for (Exchange ex : exchanges) {
@@ -48,7 +51,7 @@ public class CamelOperonComponent3Test extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("timer://foo?period=10000")
+                from("direct:case1")
                   // query http-api:
                   .setBody(constant("Select: -> http:{url: \"https://api.chucknorris.io/jokes/random\"}"))
                   .to("operon://quotes1?outputResult=true&prettyPrint=true")

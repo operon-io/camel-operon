@@ -16,44 +16,54 @@
 
 package io.operon.camel;
 
-import org.apache.camel.Exchange;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.Exchange;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
-import io.operon.camel.model.CamelOperonHeaders;
-
-import java.util.List;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class CamelOperonComponentTestOperonScriptHeader extends CamelTestSupport {
+import io.operon.camel.model.CamelOperonHeaders;
+
+public class CamelOperonComponentBindListErrorTest extends CamelTestSupport {
 
     @Test
     public void testCamelOperonComponent() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(1);
-        
-        template.sendBody("direct:case1", null);
-        
-        List<Exchange> exchanges = mock.getExchanges();
-        mock.await();
-        for (Exchange ex : exchanges) {
-            String messageBody = ex.getIn().getBody(String.class);
-            assertEquals("123", messageBody);
+        try {
+            template.sendBody("direct:case1", "\"bar\"");
+            fail("Expected CamelExecutionException");
+        } catch (Exception e) {
+            // The route should throw an exception
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+            assertEquals("OPERON_BIND_LIST does not contain '='", e.getCause().getMessage());
         }
     }
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
+        
+        String valueBindings = "foo:\"bar\"";
+        
         return new RouteBuilder() {
             public void configure() {
                 from("direct:case1")
-                  .setHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT).constant("Select: 123")
+                  .setHeader("operonBindList", constant(valueBindings))
+                  .setBody(constant("Select: $foo"))
                   .to("operon://bar")
                   .to("mock:result");
+                  
+                from("direct:case2")
+                  .setHeader(CamelOperonHeaders.HEADER_OPERON_BIND_LIST, constant(valueBindings))
+                  .setBody(constant("Select: $bin"))
+                  .to("operon://bar2")
+                  .to("mock:result2");
             }
         };
     }

@@ -44,7 +44,7 @@ public class CamelOperonLanguage6_1OutputTypeTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("direct://start")
+                from("direct:start")
                   .doTry()
                     .setHeader("INPUTMIMETYPE", constant("application/json"))
                     .setHeader("OUTPUTMIMETYPE", constant("application/java"))

@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.14-RELEASE</version>
+    <version>0.9.15-RELEASE</version>
   </dependency>
 ```
 
@@ -36,42 +36,42 @@ Please note that the headers are case-insensitive, so it does not matter whether
 The headers are listed in the class CamelOperonHeaders and it is encouraged to use these instead of hard-coding the values.
 
 * initialValue: allows to set the root-value ($) for the query.
-	- CamelOperonHeaders.HEADER_INITIAL_VALUE
+	- CamelOperonHeaders.INITIAL_VALUE
 
 * operonProducerTemplate: pass the producer-template for Operon-query, so the Camel-routes may be called from Operon. See example further from this document.
-	- CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE
+	- CamelOperonHeaders.PRODUCER_TEMPLATE
 
 * operonModules: loads any external Operon-scripts as libraries before executing the script.
-	- CamelOperonHeaders.HEADER_OPERON_MODULES
+	- CamelOperonHeaders.OPERON_MODULES
 
 * operonConfigs: the `io.operon.runner.model.OperonConfigs` -instance to manually conrol e.g. "outputResult" when using Camel's language-expression (which is there by default set to false).
-    - CamelOperonHeaders.HEADER_OPERON_CONFIGS
+    - CamelOperonHeaders.OPERON_CONFIGS
 
 * operonValueBindings: allows to bind values to the query.
-	- CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS
+	- CamelOperonHeaders.OPERON_VALUE_BINDINGS
 		- Uses Map<String, String>
 		- Example found from below
 
 * operonBindList: simpler way to bind values from String such as: `"bin=\"foo\";bai=bar"`
-	- CamelOperonHeaders.HEADER_OPERON_BIND_LIST
+	- CamelOperonHeaders.OPERON_BIND_LIST
 
 * operonIndexList: advice parser to create index for objects for the given named values. E.g. as: `"$;$foo"` advices to index the root ($) -value and value $foo (which user must bind to the query with bind-list or value-bindings).
-	- CamelOperonHeaders.HEADER_OPERON_INDEX_LIST
+	- CamelOperonHeaders.OPERON_INDEX_LIST
 
 * operonScript: the operon-script can be set into this header
-	- CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT
+	- CamelOperonHeaders.LANGUAGE_SCRIPT
 
 * operonScriptPath: the path from where the script is found
-    - CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT_PATH
+    - CamelOperonHeaders.LANGUAGE_SCRIPT_PATH
 
-* inputMimeType: decides how to interpret the input. Allowed values: application/json (default), application/java.
-	- CamelOperonHeaders.HEADER_INPUT_MIME_TYPE
+* inputMimeType: decides how to interpret the input. Allowed values: application/json (default), application/java, application/octet-stream. Values are defined in class CamelOperonMimeTypes.
+	- CamelOperonHeaders.INPUT_MIME_TYPE
 		- When "application/json", then parses the input as Operon-value.
 		- When "application/java", then parses the input as Operon-value from Java-object.
 		- When "application/octet-stream", then expects the input to be byte[], and parses the input as Operon-value: RawValue.
 
-* outputMimeType: decides how to interpret the output. Allowed values: application/json (default), application/java-operon, application/java, application/octet-stream
-	- CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE
+* outputMimeType: decides how to interpret the output. Allowed values: application/json (default), application/java-operon, application/java, application/octet-stream. Values are defined in class CamelOperonMimeTypes.
+	- CamelOperonHeaders.OUTPUT_MIME_TYPE
 		- When "application/json", then serializes the result as Java String, representing the JSON.
 		- When "application/java-operon", then keeps the result as Operon typed value, e.g. NumberType.
 		- When "application/java", true Java types, e.g. ArrayType --> ArrayList, ObjectType --> LinkedHashMap, NullType --> null, etc.

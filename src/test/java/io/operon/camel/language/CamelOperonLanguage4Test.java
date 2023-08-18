@@ -45,7 +45,7 @@ public class CamelOperonLanguage4Test extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("direct://start")
+                from("direct:start")
                   .doTry()
                     .setHeader("initialValue", constant("222"))
                     .setBody().language("operon", "Select: $")

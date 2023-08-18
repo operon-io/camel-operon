@@ -50,7 +50,7 @@ public class CamelOperonLanguage5OutputTypeTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("direct://start")
+                from("direct:start")
                   .doTry()
                     .setHeader("inputMimeType", constant("application/json"))
                     .setHeader("outputMimeType", constant("application/java-operon"))

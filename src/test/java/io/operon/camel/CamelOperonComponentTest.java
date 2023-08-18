@@ -21,9 +21,13 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
+import io.operon.camel.model.CamelOperonHeaders;
+import io.operon.camel.model.CamelOperonMimeTypes;
 
 public class CamelOperonComponentTest extends CamelTestSupport {
 
@@ -31,6 +35,112 @@ public class CamelOperonComponentTest extends CamelTestSupport {
     public void testCamelOperonComponent() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(5);
+        
+        for (int i = 0; i < 5; i ++) {
+            template.sendBody("direct:case1", i);
+        }
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent2() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", 1L);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent3() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", (short) 1);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent4() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", (double) 1);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent5() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        Double doubleValue = new Double(3.141);
+        template.sendBody("direct:case1", doubleValue);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent6() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", (float) 1);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent7() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", true);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent8() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        template.sendBody("direct:case1", false);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent9() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        List<String> list = new ArrayList<String>();
+        list.add("\"bin\"");
+        list.add("\"bai\"");
+        list.add("\"baa\"");
+        
+        template.sendBody("direct:case1", list);
+        
+        mock.await();
+    }
+
+    @Test
+    public void testCamelOperonComponent10() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:result");
+        mock.expectedMinimumMessageCount(1);
+        
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("bin", "\"bin\"");
+        map.put("bai", "\"bai\"");
+        map.put("baa", "\"baa\"");
+        
+        template.sendBody("direct:case1", map);
+        
         mock.await();
     }
 
@@ -38,8 +148,10 @@ public class CamelOperonComponentTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("timer://foo?period=1000")
-                  .setBody(constant("Select: 123"))
+                from("direct:case1")
+                  .setHeader(CamelOperonHeaders.INITIAL_VALUE).body()
+                  .setHeader(CamelOperonHeaders.INPUT_MIME_TYPE).constant(CamelOperonMimeTypes.APPLICATION_JAVA)
+                  .setBody(constant("Select: $->out:debug"))
                   .to("operon://bar")
                   .to("mock:result");
             }

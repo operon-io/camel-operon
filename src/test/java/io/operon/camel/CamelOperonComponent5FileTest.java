@@ -34,6 +34,10 @@ public class CamelOperonComponent5FileTest extends CamelTestSupport {
     public void testCamelOperonComponent() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMinimumMessageCount(2);
+        
+        template.sendBody("direct:case1", null);
+        template.sendBody("direct:case1", null);
+        
         mock.await();
         List<Exchange> exchanges = mock.getExchanges();
         //System.out.println("EXCHANGE COUNT :: " + exchanges.size());
@@ -49,7 +53,7 @@ public class CamelOperonComponent5FileTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("timer://foo?period=1000")
+                from("direct:case1")
                   .to("operon://foo?queryFile=file://./src/test/resources/queries/q.op")
                   .to("mock:result");
             }

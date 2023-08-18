@@ -29,4 +29,18 @@ public class CamelOperonHeaders {
     public static final String HEADER_PRODUCER_TEMPLATE = "operonProducerTemplate";
     public static final String HEADER_OPERON_FUNCTIONS = "operonFunctions";
     public static final String HEADER_OPERON_CONFIGS = "operonConfigs";
+
+    // Same but without HEADER -prefix
+    public static final String OUTPUT_MIME_TYPE = "outputMimeType";
+    public static final String INPUT_MIME_TYPE = "inputMimeType";
+    public static final String LANGUAGE_SCRIPT = "operonScript";
+    public static final String LANGUAGE_SCRIPT_PATH = "operonScriptPath";
+    public static final String INITIAL_VALUE = "initialValue";
+    public static final String OPERON_INDEX_LIST = "operonIndexList"; // List of values to be indexed
+    public static final String OPERON_VALUE_BINDINGS = "operonValueBindings";
+    public static final String OPERON_BIND_LIST = "operonBindList";
+    public static final String OPERON_MODULES = "operonModules";
+    public static final String PRODUCER_TEMPLATE = "operonProducerTemplate";
+    public static final String OPERON_FUNCTIONS = "operonFunctions";
+    public static final String OPERON_CONFIGS = "operonConfigs";
 }

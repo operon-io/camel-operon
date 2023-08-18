@@ -87,7 +87,6 @@ public class OperonProcessor implements Processor {
     private List<ModuleDefinition> modules;
     private boolean debug = false;
 
-    private Gson gson;
     private ProducerTemplate pt;
 
     public void process(Exchange exchange) throws Exception {
@@ -99,8 +98,6 @@ public class OperonProcessor implements Processor {
         //
         // init-code here, e.g. load operon-modules
         //
-        gson = new Gson();
-        
         if (modules == null) {
             modules = new ArrayList<ModuleDefinition>();
         }
@@ -176,7 +173,7 @@ public class OperonProcessor implements Processor {
         }
         
         if (_inputMimeType == null || "".equalsIgnoreCase(_inputMimeType.trim())) {
-			String overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE);
+			String overriddenInputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.INPUT_MIME_TYPE);
 			
 			if (overriddenInputMimeType == null) {
 				overriddenInputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
@@ -194,7 +191,7 @@ public class OperonProcessor implements Processor {
         }
 
         if (_outputMimeType == null || "".equalsIgnoreCase(_outputMimeType.trim())) {
-			String overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE);
+			String overriddenOutputMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.OUTPUT_MIME_TYPE);
 			
 			if (overriddenOutputMimeType == null) {
 				overriddenOutputMimeType = CamelOperonMimeTypes.UNKNOWN_MIME_TYPE;
@@ -217,11 +214,11 @@ public class OperonProcessor implements Processor {
 		String query = this.getOperonScript();
 		
 		if (query == null) {
-			query = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT);
+			query = (String) exchange.getIn().getHeader(CamelOperonHeaders.LANGUAGE_SCRIPT);
 		}
 		
 		if (query == null) {
-		    String queryFile = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_LANGUAGE_SCRIPT_PATH);
+		    String queryFile = (String) exchange.getIn().getHeader(CamelOperonHeaders.LANGUAGE_SCRIPT_PATH);
 		    if (queryFile != null && queryFile.length() > 0) {
 		        query = QueryLoadUtil.loadQueryFile(queryFile);
 		    }
@@ -237,7 +234,7 @@ public class OperonProcessor implements Processor {
 		//
 		// Resolve initial value
 		//
-		Object initialValueData = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INITIAL_VALUE);
+		Object initialValueData = exchange.getIn().getHeader(CamelOperonHeaders.INITIAL_VALUE);
 		
 		if (initialValueData == null && queryInBody == false) {
 			//logger.info("Resolve initial value from body");
@@ -252,7 +249,7 @@ public class OperonProcessor implements Processor {
 		// Check headers for index-list, e.g. "$;$foo;$bar"
 		// These values will be adviced to be indexed when parsed by the JsonUtil
 		//
-		String indexListStr = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_INDEX_LIST, String.class);
+		String indexListStr = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_INDEX_LIST, String.class);
 		String[] indexList = {};
 		
 		if (indexListStr != null) {
@@ -262,7 +259,7 @@ public class OperonProcessor implements Processor {
 		//
 		// Check headers for value-bindings
 		//
-		Map valueBindings = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_VALUE_BINDINGS, Map.class);
+		Map valueBindings = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_VALUE_BINDINGS, Map.class);
 		if (valueBindings != null) {
 		    HashMap<String, String> valueBindingsHM = (HashMap<String, String>) valueBindings;
 		    // loop over, and set into configs.
@@ -290,19 +287,24 @@ public class OperonProcessor implements Processor {
 		}
 		
 		//
-		// Check headers for value-bindings list, e.g. "bin=foo;bai=bar"
+		// Check headers for value-bindings list, e.g. `bin=\"foo\";bai=\"bar\"`
 		//
-		String valueBindingsStr = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_BIND_LIST, String.class);
-		if (valueBindingsStr != null) {
+		String valueBindingsStr = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_BIND_LIST, String.class);
+		if (valueBindingsStr != null && valueBindingsStr.length() > 0) {
 		    String[] kvs = valueBindingsStr.split(";");
+
 		    // loop over, and set into configs.
 		    for (int i = 0; i < kvs.length; i ++) {
                 String[] kv = kvs[i].split("=");
+                if (kv.length == 1) {
+                	throw new IllegalArgumentException("OPERON_BIND_LIST does not contain '='");
+                }
                 
                 OperonValue operonValue = null;
 				
 				boolean indexValue = false;
 				
+				// Check if this value should be indexed
 				for (int k = 0; k < indexList.length; k ++) {
 				    if (indexList[k].trim().equals("$" + kv[0])) {
 				        indexValue = true;
@@ -325,7 +327,7 @@ public class OperonProcessor implements Processor {
 		//
 		// Register user-defined Java-functions
 		//
-		Map<String, OperonFunction> operonFunctionsMap = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_FUNCTIONS, Map.class);
+		Map<String, OperonFunction> operonFunctionsMap = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_FUNCTIONS, Map.class);
         if (operonFunctionsMap != null) {
             for (Map.Entry<String, OperonFunction> entry : operonFunctionsMap.entrySet()) {
                 String fnKey =  entry.getKey();
@@ -337,7 +339,7 @@ public class OperonProcessor implements Processor {
 		//
 		// Set the ProducerTemplate, that can be used from the query
 		//
-		ProducerTemplate userPt = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_PRODUCER_TEMPLATE, ProducerTemplate.class);
+		ProducerTemplate userPt = exchange.getIn().getHeader(CamelOperonHeaders.PRODUCER_TEMPLATE, ProducerTemplate.class);
 		
 		if (userPt != null) {
     		ProducerTemplateFunc ptFunc = new ProducerTemplateFunc(userPt, exchange);
@@ -345,7 +347,7 @@ public class OperonProcessor implements Processor {
 		}
 		
 		if (initialValueData != null) {
-			if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
+			if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_JSON)) {
 				String initialValueStr = (String) initialValueData;
 				if (initialValueStr.isEmpty()) {
 					initialValueStr = "empty";
@@ -367,9 +369,13 @@ public class OperonProcessor implements Processor {
 				}
 			}
 			
-			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
-				// map from pojo
-				String jsonString = gson.toJson(initialValueData);
+			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_JAVA)) {
+				// map from pojo / java type
+				String jsonString = null;
+				
+				Gson gson = new Gson();
+				jsonString = gson.toJson(initialValueData);
+				
 				if (jsonString.isEmpty()) {
 					jsonString = "empty";
 				}
@@ -389,7 +395,7 @@ public class OperonProcessor implements Processor {
 				}
 			}
 			
-			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {
+			else if (_inputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_OCTET_STREAM)) {
 				byte[] initialValueBytes = (byte[]) initialValueData;
 				if (initialValueBytes.length == 0) {
 					initialValue = JsonUtil.operonValueFromString("empty");
@@ -430,10 +436,12 @@ public class OperonProcessor implements Processor {
         else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
         	resultValue = resultValue.evaluate(); // unbox the OperonValue
         	if (resultValue instanceof ArrayType) {
+            	Gson gson = new Gson();
             	Object result = gson.fromJson(resultValue.toString(), ArrayList.class);
             	return result;
         	}
         	else if (resultValue instanceof ObjectType) {
+            	Gson gson = new Gson();
             	Object result = gson.fromJson(resultValue.toString(), LinkedHashMap.class);
             	return result;
         	}

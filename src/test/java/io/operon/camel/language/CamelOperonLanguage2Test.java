@@ -50,7 +50,7 @@ public class CamelOperonLanguage2Test extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("direct://start")
+                from("direct:start")
                   .doTry()
                     .setBody().language("operon", null)
                     .to("mock:result")
