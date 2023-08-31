@@ -47,6 +47,12 @@ public class CamelOperonEndpoint extends DefaultEndpoint {
     @UriParam(description = "Formats the result")
     private boolean prettyPrint = false;
 
+    @UriParam(defaultValue = "application/json", description = "How the input should be interpreted")
+    private String inputMimeType;
+
+    @UriParam(defaultValue = "application/json", description = "How the output should be interpreted")
+    private String outputMimeType;
+
     @UriParam(defaultValue = "", description = "Timezone for date-functions")
     private String timezone;
 
@@ -146,6 +152,22 @@ public class CamelOperonEndpoint extends DefaultEndpoint {
 
     public boolean isDebug() {
         return this.debug;
+    }
+
+    public void setInputMimeType(String t) {
+        this.inputMimeType = t;
+    }
+
+    public String getInputMimeType() {
+        return inputMimeType;
+    }
+
+    public void setOutputMimeType(String t) {
+        this.outputMimeType = t;
+    }
+
+    public String getOutputMimeType() {
+        return outputMimeType;
     }
 
     public ExecutorService createExecutor() {

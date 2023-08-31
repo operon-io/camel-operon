@@ -21,11 +21,13 @@ public class CamelOperonEndpointUriFactory extends org.apache.camel.support.comp
     private static final Set<String> SECRET_PROPERTY_NAMES;
     private static final Set<String> MULTI_VALUE_PREFIXES;
     static {
-        Set<String> props = new HashSet<>(10);
+        Set<String> props = new HashSet<>(12);
         props.add("debug");
         props.add("indexRoot");
+        props.add("inputMimeType");
         props.add("lazyStartProducer");
         props.add("name");
+        props.add("outputMimeType");
         props.add("outputResult");
         props.add("prettyPrint");
         props.add("printDuration");

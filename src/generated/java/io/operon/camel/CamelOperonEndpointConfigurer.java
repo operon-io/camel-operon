@@ -24,8 +24,12 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "debug": target.setDebug(property(camelContext, boolean.class, value)); return true;
         case "indexroot":
         case "indexRoot": target.setIndexRoot(property(camelContext, boolean.class, value)); return true;
+        case "inputmimetype":
+        case "inputMimeType": target.setInputMimeType(property(camelContext, java.lang.String.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "outputmimetype":
+        case "outputMimeType": target.setOutputMimeType(property(camelContext, java.lang.String.class, value)); return true;
         case "outputresult":
         case "outputResult": target.setOutputResult(property(camelContext, boolean.class, value)); return true;
         case "prettyprint":
@@ -47,8 +51,12 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "debug": return boolean.class;
         case "indexroot":
         case "indexRoot": return boolean.class;
+        case "inputmimetype":
+        case "inputMimeType": return java.lang.String.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "outputmimetype":
+        case "outputMimeType": return java.lang.String.class;
         case "outputresult":
         case "outputResult": return boolean.class;
         case "prettyprint":
@@ -71,8 +79,12 @@ public class CamelOperonEndpointConfigurer extends PropertyConfigurerSupport imp
         case "debug": return target.isDebug();
         case "indexroot":
         case "indexRoot": return target.isIndexRoot();
+        case "inputmimetype":
+        case "inputMimeType": return target.getInputMimeType();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "outputmimetype":
+        case "outputMimeType": return target.getOutputMimeType();
         case "outputresult":
         case "outputResult": return target.isOutputResult();
         case "prettyprint":

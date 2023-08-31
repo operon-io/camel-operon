@@ -75,7 +75,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
 
     @Override
     public <T> T evaluate(Exchange exchange, Class<T> type) {
-        OperonConfigs overrideConfigs = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_CONFIGS, OperonConfigs.class);
+        OperonConfigs overrideConfigs = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_CONFIGS, OperonConfigs.class);
         
         if (overrideConfigs != null) {
             this.configs = overrideConfigs;
@@ -85,7 +85,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
             exchange.setProperty("inputMimeType", inputMimeType);
         }
         else {
-            String inMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_INPUT_MIME_TYPE);
+            String inMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.INPUT_MIME_TYPE);
             if (inMimeType != null) {
                 inputMimeType = inMimeType;
             }
@@ -95,7 +95,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
             exchange.setProperty("outputMimeType", outputMimeType);
         }
         else {
-            String outMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OUTPUT_MIME_TYPE);
+            String outMimeType = (String) exchange.getIn().getHeader(CamelOperonHeaders.OUTPUT_MIME_TYPE);
             if (outMimeType != null) {
                 outputMimeType = outMimeType;
             }
@@ -106,7 +106,7 @@ public class OperonExpression extends ExpressionAdapter { //implements Generated
                 expression = script;
                 processor.setOperonScript(script);
             }
-            String modulePathsStr = exchange.getIn().getHeader(CamelOperonHeaders.HEADER_OPERON_MODULES, String.class);
+            String modulePathsStr = exchange.getIn().getHeader(CamelOperonHeaders.OPERON_MODULES, String.class);
             if (modulePathsStr != null) {
                 List<String> modulePaths = new ArrayList<String>();
                 String [] paths = modulePathsStr.split(",");

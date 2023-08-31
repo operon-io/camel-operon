@@ -427,13 +427,13 @@ public class OperonProcessor implements Processor {
 	        System.out.println("outputMimeType :: " + _outputMimeType);
         }
         
-        if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JSON)) {
+        if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_JSON)) {
         	return resultValue.toString();
         }
-        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA_OPERON)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_JAVA_OPERON)) {
         	return resultValue;
         }
-        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_JAVA)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_JAVA)) {
         	resultValue = resultValue.evaluate(); // unbox the OperonValue
         	if (resultValue instanceof ArrayType) {
             	Gson gson = new Gson();
@@ -468,7 +468,7 @@ public class OperonProcessor implements Processor {
         	    return resultValue;
         	}
         }
-        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.MIME_APPLICATION_OCTET_STREAM)) {
+        else if (_outputMimeType.equalsIgnoreCase(CamelOperonMimeTypes.APPLICATION_OCTET_STREAM)) {
         	// Cast to raw type:
         	RawValue raw = (RawValue) resultValue;
         	return raw.getBytes();

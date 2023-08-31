@@ -6,13 +6,13 @@
   <parent>
     <groupId>io.operon</groupId>
     <artifactId>operon-core-parent</artifactId>
-    <version>0.9.15-RELEASE</version>
+    <version>0.9.16-RELEASE</version>
   </parent>
 
   <groupId>io.operon</groupId>
   <artifactId>camel-operon</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.15.1-RELEASE</version>
+  <version>0.9.16-RELEASE</version>
 
   <name>Camel Operon Component</name>
   <url>https://operon.io</url>
@@ -60,7 +60,7 @@
     <maven.resources-plugin.version>3.3.0</maven.resources-plugin.version>
     
     <camel.version>3.21.0</camel.version>
-    <operon.version>0.9.15-RELEASE</operon.version>
+    <operon.version>0.9.16-RELEASE</operon.version>
   </properties>
 
   <dependencies>

@@ -17,7 +17,7 @@ https://operon.io/components/running-operon-from-apache-camel
   <dependency>
     <groupId>io.operon</groupId>
     <artifactId>camel-operon</artifactId>
-    <version>0.9.15-RELEASE</version>
+    <version>0.9.16-RELEASE</version>
   </dependency>
 ```
 

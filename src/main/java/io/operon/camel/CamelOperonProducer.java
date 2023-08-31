@@ -51,6 +51,8 @@ public class CamelOperonProducer extends DefaultProducer {
     private CamelOperonEndpoint endpoint;
     private String queryFile = null;
     private String query = null;
+    private String inputMimeType = null;
+    private String outputMimeType = null;
     private OperonConfigs configs = null;
     private boolean debug = false;
     private OperonProcessor processor;
@@ -61,6 +63,8 @@ public class CamelOperonProducer extends DefaultProducer {
         this.configs = new OperonConfigs();
         this.queryFile = endpoint.getQueryFile();
         this.debug = endpoint.isDebug();
+        this.inputMimeType = endpoint.getInputMimeType();
+        this.outputMimeType = endpoint.getOutputMimeType();
         processor = new OperonProcessor();
         processor.setDebug(this.debug);
         
@@ -83,8 +87,6 @@ public class CamelOperonProducer extends DefaultProducer {
     }
 
     public void process(Exchange exchange) throws Exception {
-        String inputMimeType = null;
-        String outputMimeType = null;
         processor.setOperonScript(this.query);
         
         String modulePathsStr = exchange.getIn().getHeader(HEADER_OPERON_MODULES, String.class);

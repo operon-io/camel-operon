@@ -18,7 +18,7 @@
   "properties": {
     "expression": { "kind": "value", "displayName": "Expression", "required": true, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "The expression value in your chosen language syntax" },
     "id": { "kind": "attribute", "displayName": "Id", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the id of this node" },
-    "inputMimeType": { "kind": "attribute", "displayName": "inputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the input mime type of the expression" },
-    "outputMimeType": { "kind": "attribute", "displayName": "outputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the output mime type of the expression" }
+    "inputMimeType": { "kind": "value", "displayName": "inputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the input mime type of the expression" },
+    "outputMimeType": { "kind": "value", "displayName": "outputMimeType", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "secret": false, "description": "Sets the output mime type of the expression" }
   }
 }
